@@ -1,0 +1,13 @@
+To install this software, download the source code and extract it into a
+folder on your computer. Then run the following:
+
+    ./configure
+    make && make install
+
+To install the software.
+
+To uninstall the software, run the following:
+
+    make uninstall
+
+
