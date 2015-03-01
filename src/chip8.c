@@ -34,7 +34,7 @@ struct machine_t
     uint16_t stack[16];         // Stack can hold 16 16-bit values
     uint16_t sp;                // Stack pointer
     
-    uint8_t V[16];              // 16 general purpose registers
+    uint8_t v[16];              // 16 general purpose registers
     uint16_t i;                 // Special I register
     uint8_t dt, st;             // Timers
 };
@@ -55,7 +55,7 @@ init_machine(struct machine_t* machine)
 
     memset(machine->mem, 0, MEMSIZ);
     memset(machine->stack, 0, 16);
-    memset(machine->V, 0, 16);
+    memset(machine->v, 0, 16);
 }
 
 /**
@@ -125,75 +125,75 @@ main(int argc, const char * argv[])
                 break;
             case 3:
                 // SE x, kk: if V[x] == kk -> pc += 2
-                if (mac.V[x] == kk)
+                if (mac.v[x] == kk)
                     mac.pc = (mac.pc + 2) & 0xFFF;
                 break;
             case 4:
                 // SNE x, kk: if V[x] != kk -> pc += 2
-                if (mac.V[x] != kk)
+                if (mac.v[x] != kk)
                     mac.pc = (mac.pc + 2) & 0xFFF;
                 break;
             case 5:
                 // SE x, y: if V[x] == V[y] -> pc += 2
-                if (mac.V[x] == mac.V[y])
+                if (mac.v[x] == mac.v[y])
                     mac.pc = (mac.pc + 2) & 0xFFF;
                 break;
             case 6:
                 // LD x, kk: V[x] = kk
-                mac.V[x] = kk;
+                mac.v[x] = kk;
                 break;
             case 7:
                 // ADD x, kk: V[x] = (V[x] + kk) & 0xFF
-                mac.V[x] = (mac.V[x] + kk) & 0xFF;
+                mac.v[x] = (mac.v[x] + kk) & 0xFF;
                 break;
             case 8:
                 switch (n) {
                     case 0:
                         // LD x, y: V[x] = V[y]
-                        mac.V[x] = mac.V[y];
+                        mac.v[x] = mac.v[y];
                         break;
                     case 1:
                         // OR x, y: V[x] = V[x] | V[y];
-                        mac.V[x] |= mac.V[y];
+                        mac.v[x] |= mac.v[y];
                         break;
                     case 2:
                         // AND x, y: V[x] = V[x] & V[y]
-                        mac.V[x] &= mac.V[y];
+                        mac.v[x] &= mac.v[y];
                         break;
                     case 3:
                         // XOR x, y: V[x] = V[x] ^ V[y]
-                        mac.V[x] ^= mac.V[y];
+                        mac.v[x] ^= mac.v[y];
                         break;
                     case 4:
                         // ADD x, y: V[x] += V[y]
-                        mac.V[0xF] = (mac.V[x] > mac.V[x] + mac.V[y]);
-                        mac.V[x] += mac.V[y];
+                        mac.v[0xF] = (mac.v[x] > mac.v[x] + mac.v[y]);
+                        mac.v[x] += mac.v[y];
                         break;
                     case 5:
                         // SUB x, y: V[x] -= V[y]
-                        mac.V[0xF] = (mac.V[x] > mac.V[y]);
-                        mac.V[x] -= mac.V[y];
+                        mac.v[0xF] = (mac.v[x] > mac.v[y]);
+                        mac.v[x] -= mac.v[y];
                         break;
                     case 6:
                         // SHR x : V[x] = V[x] >> 1
-                        mac.V[0xF] = (mac.V[x] & 1);
-                        mac.V[x] >>= 1;
+                        mac.v[0xF] = (mac.v[x] & 1);
+                        mac.v[x] >>= 1;
                         break;
                     case 7:
                         // SUBN x, y: V[x] = V[y] - V[x]
-                        mac.V[0xF] = (mac.V[y] > mac.V[x]);
-                        mac.V[x] = mac.V[y] - mac.V[x];
+                        mac.v[0xF] = (mac.v[y] > mac.v[x]);
+                        mac.v[x] = mac.v[y] - mac.v[x];
                         break;
                     case 0xE:
                         // SHL x : V[x] = V[x] << 1
-                        mac.V[0xF] = ((mac.V[x] & 0x80) != 0);
-                        mac.V[x] <<= 1;
+                        mac.v[0xF] = ((mac.v[x] & 0x80) != 0);
+                        mac.v[x] <<= 1;
                         break;
                 }
                 break;
             case 9:
                 // SNE x, y: V[x] != V[y] -> pc += 2;
-                if (mac.V[x] != mac.V[y])
+                if (mac.v[x] != mac.v[y])
                     mac.pc = (mac.pc + 2) & 0xFFF;
                 break;
             case 0xA:
@@ -203,7 +203,7 @@ main(int argc, const char * argv[])
                 break;
             case 0xB:
                 // JP V0, nnn: pc = V[0] + nnn
-                mac.pc = mac.V[0] + nnn;
+                mac.pc = mac.v[0] + nnn;
                 break;
             case 0xC:
                 printf("RND %x, %x\n", x, kk);
@@ -222,22 +222,22 @@ main(int argc, const char * argv[])
                 switch (kk) {
                     case 0x07:
                         // LD V[x], DT: V[x] = DT
-                        mac.V[x] = mac.dt;
+                        mac.v[x] = mac.dt;
                         break;
                     case 0x0A:
                         printf("LD %x, K\n", x);
                         break;
                     case 0x15:
                         // LD DT, V[x] -> DT = V[x]
-                        mac.dt = mac.V[x];
+                        mac.dt = mac.v[x];
                         break;
                     case 0x18:
                         // LD ST, V[x] -> ST = V[x]
-                        mac.st = mac.V[x];
+                        mac.st = mac.v[x];
                         break;
                     case 0x1E:
                         // ADD I, V[x] -> I += V[x]
-                        mac.i += mac.V[x];
+                        mac.i += mac.v[x];
                         break;
                     case 0x29:
                         printf("LD F, %x\n", x);
