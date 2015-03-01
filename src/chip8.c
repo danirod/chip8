@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #define MEMSIZ 4096 // How much memory can handle the CHIP-8
 
@@ -33,7 +34,7 @@ struct machine_t
     uint16_t stack[16];         // Stack can hold 16 16-bit values
     uint16_t sp;                // Stack pointer
     
-    uint8_t v[16];              // 16 general purpose registers
+    uint8_t V[16];              // 16 general purpose registers
     uint16_t i;                 // Special I register
     uint8_t dt, st;             // Timers
 };
@@ -49,17 +50,12 @@ struct machine_t
 void
 init_machine(struct machine_t* machine)
 {
-    machine->sp = machine->i = machine->dt = machine->st = 0x00;
+    machine->sp = machine->i = machine->dt = machine->st = 0;
     machine->pc = 0x200;
 
-    // FIXME: Replace these for-loops with calls to memset(3).
-    // Would do this right now but I don't want to do this off-camera!
-    for (int i = 0; i < MEMSIZ; i++)
-        machine->mem[i] = 0x00;
-    for (int i = 0; i < 16; i++) {
-        machine->stack[i] = 0;
-        machine->v[i] = 0;
-    }
+    memset(machine->mem, 0, MEMSIZ);
+    memset(machine->stack, 0, 16);
+    memset(machine->V, 0, 16);
 }
 
 /**
@@ -101,11 +97,7 @@ main(int argc, const char * argv[])
     while (!mustQuit) {
         // Read next opcode from memory.
         uint16_t opcode = (mac.mem[mac.pc] << 8) | mac.mem[mac.pc + 1];
-        // FIXME: Change to mac.pc = (mac.pc + 2) & 0xFFF
-        //        (Did I already said that I don't want to code off-camera?)
-        mac.pc += 2;
-        if (mac.pc == MEMSIZ)
-            mac.pc = 0;
+        mac.pc = (mac.pc + 2) & MEMSIZ;
 
         // Extract bit nibbles from the opcode
         uint16_t nnn = opcode & 0x0FFF;
@@ -125,65 +117,93 @@ main(int argc, const char * argv[])
                 }
                 break;
             case 1:
-                printf("JP %x\n", nnn);
+                // JP nnn: set program counter to nnn
+                mac.pc = nnn;
                 break;
             case 2:
                 printf("CALL %x\n", nnn);
                 break;
             case 3:
-                printf("SE %x, %x\n", x, kk);
+                // SE x, kk: if V[x] == kk -> pc += 2
+                if (mac.V[x] == kk)
+                    mac.pc = (mac.pc + 2) & 0xFFF;
                 break;
             case 4:
-                printf("SNE %x, %x\n", x, kk);
+                // SNE x, kk: if V[x] != kk -> pc += 2
+                if (mac.V[x] != kk)
+                    mac.pc = (mac.pc + 2) & 0xFFF;
                 break;
             case 5:
-                printf("SE %x, %x\n", x, y);
+                // SE x, y: if V[x] == V[y] -> pc += 2
+                if (mac.V[x] == mac.V[y])
+                    mac.pc = (mac.pc + 2) & 0xFFF;
                 break;
             case 6:
-                printf("LD %x, %x\n", x, kk);
+                // LD x, kk: V[x] = kk
+                mac.V[x] = kk;
                 break;
             case 7:
-                printf("ADD %x, %x\n", x, kk);
+                // ADD x, kk: V[x] = (V[x] + kk) & 0xFF
+                mac.V[x] = (mac.V[x] + kk) & 0xFF;
                 break;
             case 8:
                 switch (n) {
                     case 0:
-                        printf("LD %x, %x\n", x, y);
+                        // LD x, y: V[x] = V[y]
+                        mac.V[x] = mac.V[y];
                         break;
                     case 1:
-                        printf("OR %x, %x\n", x, y);
+                        // OR x, y: V[x] = V[x] | V[y];
+                        mac.V[x] |= mac.V[y];
                         break;
                     case 2:
-                        printf("AND %x, %x\n", x, y);
+                        // AND x, y: V[x] = V[x] & V[y]
+                        mac.V[x] &= mac.V[y];
                         break;
                     case 3:
-                        printf("XOR %x, %x\n", x, y);
+                        // XOR x, y: V[x] = V[x] ^ V[y]
+                        mac.V[x] ^= mac.V[y];
                         break;
                     case 4:
-                        printf("ADD %x, %x\n", x, y);
+                        // ADD x, y: V[x] += V[y]
+                        mac.V[0xF] = (mac.V[x] > mac.V[x] + mac.V[y]);
+                        mac.V[x] += mac.V[y];
                         break;
                     case 5:
-                        printf("SUB %x, %x\n", x, y);
+                        // SUB x, y: V[x] -= V[y]
+                        mac.V[0xF] = (mac.V[x] > mac.V[y]);
+                        mac.V[x] -= mac.V[y];
                         break;
                     case 6:
-                        printf("SHR %x\n", x);
+                        // SHR x : V[x] = V[x] >> 1
+                        mac.V[0xF] = (mac.V[x] & 1);
+                        mac.V[x] >>= 1;
                         break;
                     case 7:
-                        printf("SUBN %x, %x\n", x, y);
+                        // SUBN x, y: V[x] = V[y] - V[x]
+                        mac.V[0xF] = (mac.V[y] > mac.V[x]);
+                        mac.V[x] = mac.V[y] - mac.V[x];
                         break;
                     case 0xE:
-                        printf("SHL %x\n", x);
+                        // SHL x : V[x] = V[x] << 1
+                        mac.V[0xF] = ((mac.V[x] & 0x80) != 0);
+                        mac.V[x] <<= 1;
                         break;
                 }
                 break;
             case 9:
-                printf("SNE %x, %x\n", x, y);
+                // SNE x, y: V[x] != V[y] -> pc += 2;
+                if (mac.V[x] != mac.V[y])
+                    mac.pc = (mac.pc + 2) & 0xFFF;
                 break;
             case 0xA:
+                // LD I, x : I = nnn
+                mac.i = nnn;
                 printf("LD I, %x\n", nnn);
                 break;
             case 0xB:
-                printf("JP V0, %x\n", nnn);
+                // JP V0, nnn: pc = V[0] + nnn
+                mac.pc = mac.V[0] + nnn;
                 break;
             case 0xC:
                 printf("RND %x, %x\n", x, kk);
@@ -201,19 +221,23 @@ main(int argc, const char * argv[])
             case 0xF:
                 switch (kk) {
                     case 0x07:
-                        printf("LD %x, DT\n", x);
+                        // LD V[x], DT: V[x] = DT
+                        mac.V[x] = mac.dt;
                         break;
                     case 0x0A:
                         printf("LD %x, K\n", x);
                         break;
                     case 0x15:
-                        printf("LD DT, %x\n", x);
+                        // LD DT, V[x] -> DT = V[x]
+                        mac.dt = mac.V[x];
                         break;
                     case 0x18:
-                        printf("LD ST, %x\n", x);
+                        // LD ST, V[x] -> ST = V[x]
+                        mac.st = mac.V[x];
                         break;
                     case 0x1E:
-                        printf("ADD I, %x\n", x);
+                        // ADD I, V[x] -> I += V[x]
+                        mac.i += mac.V[x];
                         break;
                     case 0x29:
                         printf("LD F, %x\n", x);
