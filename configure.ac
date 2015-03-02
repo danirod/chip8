@@ -7,7 +7,8 @@ AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_PROG_CC
 
 # Check libraries
-
+AC_CHECK_LIB([SDL2], [SDL_Init], [], 
+             [AC_MSG_ERROR(["** ERROR: SDL2 is required to build this. ** "])])
 # Check header files
 
 # Check typedefs, structures and so

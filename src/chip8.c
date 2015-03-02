@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <SDL2/SDL.h>
 
 #define MEMSIZ 4096 // How much memory can handle the CHIP-8
 
@@ -259,15 +260,43 @@ step_machine(struct machine_t* cpu)
 int
 main(int argc, const char * argv[])
 {
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    SDL_Event event;
     struct machine_t mac;
-    
+    int mustQuit = 0;
+ 
+    // Init emulator
     init_machine(&mac);
     load_rom(&mac);
-
-    int mustQuit = 0;
+    
+    // Init SDL engine
+    SDL_Init(SDL_INIT_EVERYTHING);
+    window = SDL_CreateWindow("CHIP-8 Emulator",
+                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                              640, 320, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
+                                        | SDL_WINDOW_RESIZABLE);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    
     while (!mustQuit) {
-        step_machine(&mac);
+        // step_machine(&mac);
+        // Disabled. You'll see at the next live coding session why.
+
+        SDL_WaitEvent(&event);
+        switch (event.type) {
+            case SDL_QUIT:
+                mustQuit = 1;
+                break;
+        }
+
+        SDL_RenderClear(renderer);
+        SDL_RenderPresent(renderer);
     }
+    
+    // Dispose SDL engine.
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
     return 0;
 }
