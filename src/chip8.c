@@ -54,7 +54,7 @@ init_machine(struct machine_t* machine)
     machine->pc = 0x200;
 
     memset(machine->mem, 0, MEMSIZ);
-    memset(machine->stack, 0, 16);
+    memset(machine->stack, 0, 32);
     memset(machine->v, 0, 16);
 }
 
@@ -97,7 +97,7 @@ main(int argc, const char * argv[])
     while (!mustQuit) {
         // Read next opcode from memory.
         uint16_t opcode = (mac.mem[mac.pc] << 8) | mac.mem[mac.pc + 1];
-        mac.pc = (mac.pc + 2) & MEMSIZ;
+        mac.pc = (mac.pc + 2) & 0xFFF;
 
         // Extract bit nibbles from the opcode
         uint16_t nnn = opcode & 0x0FFF;
