@@ -262,6 +262,8 @@ main(int argc, const char * argv[])
 {
     SDL_Window* window;
     SDL_Renderer* renderer;
+    SDL_Texture* texture;
+    SDL_Surface* surface;
     SDL_Event event;
     struct machine_t mac;
     int mustQuit = 0;
@@ -277,7 +279,19 @@ main(int argc, const char * argv[])
                               640, 320, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
                                         | SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+                                SDL_TEXTUREACCESS_STREAMING, 64, 32);
     
+    // Write some dummy white background
+    surface = SDL_CreateRGBSurfaceFrom(NULL, 64, 32, 32, 0,
+                                       0x00FF0000,
+                                       0x0000FF00,
+                                       0x000000FF,
+                                       0xFF000000);
+    SDL_LockTexture(texture, NULL, &surface->pixels, &surface->pitch);
+    memset(surface->pixels, 0xFF, surface->pitch * 32);
+    SDL_UnlockTexture(texture);
+
     while (!mustQuit) {
         // step_machine(&mac);
         // Disabled. You'll see at the next live coding session why.
@@ -290,10 +304,12 @@ main(int argc, const char * argv[])
         }
 
         SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
     }
     
     // Dispose SDL engine.
+    SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
