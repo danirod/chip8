@@ -85,6 +85,177 @@ load_rom(struct machine_t* machine)
     fclose(fp);
 }
 
+/**
+ * Step the machine. This method will fetch an instruction from memory
+ * and execute it. After invoking this method, the state of the provided
+ * machine is modified according to the executed instruction.
+ * 
+ * @param cpu reference pointer to the machine to step
+ */
+void
+step_machine(struct machine_t* cpu)
+{
+    // Read next opcode from memory.
+    uint16_t opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
+    cpu->pc = (cpu->pc + 2) & 0xFFF;
+
+    // Extract bit nibbles from the opcode
+    uint16_t nnn = opcode & 0x0FFF;
+    uint8_t kk = opcode & 0xFF;
+    uint8_t n = opcode & 0xF;
+    uint8_t x = (opcode >> 8) & 0xF;
+    uint8_t y = (opcode >> 4) & 0xF;
+    uint8_t p = (opcode >> 12);
+
+    // infernal switch case! (sorry for all the heart attacks here u_u)
+    switch (p) {
+        case 0:
+            if (opcode == 0x00e0) {
+                printf("cls\n");
+            } else if (opcode == 0x00ee) {
+                printf("ret\n");
+            }
+            break;
+        case 1:
+            // jp nnn: set program counter to nnn
+            cpu->pc = nnn;
+            break;
+        case 2:
+            printf("call %x\n", nnn);
+            break;
+        case 3:
+            // se x, kk: if v[x] == kk -> pc += 2
+            if (cpu->v[x] == kk)
+                cpu->pc = (cpu->pc + 2) & 0xfff;
+            break;
+        case 4:
+            // sne x, kk: if v[x] != kk -> pc += 2
+            if (cpu->v[x] != kk)
+                cpu->pc = (cpu->pc + 2) & 0xfff;
+            break;
+        case 5:
+            // se x, y: if v[x] == v[y] -> pc += 2
+            if (cpu->v[x] == cpu->v[y])
+                cpu->pc = (cpu->pc + 2) & 0xfff;
+            break;
+        case 6:
+            // ld x, kk: v[x] = kk
+            cpu->v[x] = kk;
+            break;
+        case 7:
+            // add x, kk: v[x] = (v[x] + kk) & 0xff
+            cpu->v[x] = (cpu->v[x] + kk) & 0xff;
+            break;
+        case 8:
+            switch (n) {
+                case 0:
+                    // ld x, y: v[x] = v[y]
+                    cpu->v[x] = cpu->v[y];
+                    break;
+                case 1:
+                    // or x, y: v[x] = v[x] | v[y];
+                    cpu->v[x] |= cpu->v[y];
+                    break;
+                case 2:
+                    // and x, y: v[x] = v[x] & v[y]
+                    cpu->v[x] &= cpu->v[y];
+                    break;
+                case 3:
+                    // xor x, y: v[x] = v[x] ^ v[y]
+                    cpu->v[x] ^= cpu->v[y];
+                    break;
+                case 4:
+                    // add x, y: v[x] += v[y]
+                    cpu->v[0xf] = (cpu->v[x] > cpu->v[x] + cpu->v[y]);
+                    cpu->v[x] += cpu->v[y];
+                    break;
+                case 5:
+                    // SUB x, y: V[x] -= V[y]
+                    cpu->v[0xF] = (cpu->v[x] > cpu->v[y]);
+                    cpu->v[x] -= cpu->v[y];
+                    break;
+                case 6:
+                    // SHR x : V[x] = V[x] >> 1
+                    cpu->v[0xF] = (cpu->v[x] & 1);
+                    cpu->v[x] >>= 1;
+                    break;
+                case 7:
+                    // SUBN x, y: V[x] = V[y] - V[x]
+                    cpu->v[0xF] = (cpu->v[y] > cpu->v[x]);
+                    cpu->v[x] = cpu->v[y] - cpu->v[x];
+                    break;
+                case 0xE:
+                    // SHL x : V[x] = V[x] << 1
+                    cpu->v[0xF] = ((cpu->v[x] & 0x80) != 0);
+                    cpu->v[x] <<= 1;
+                    break;
+            }
+            break;
+        case 9:
+            // SNE x, y: V[x] != V[y] -> pc += 2;
+            if (cpu->v[x] != cpu->v[y])
+                cpu->pc = (cpu->pc + 2) & 0xFFF;
+            break;
+        case 0xA:
+            // LD I, x : I = nnn
+            cpu->i = nnn;
+            printf("LD I, %x\n", nnn);
+            break;
+        case 0xB:
+            // JP V0, nnn: pc = V[0] + nnn
+            cpu->pc = cpu->v[0] + nnn;
+            break;
+        case 0xC:
+            printf("RND %x, %x\n", x, kk);
+            break;
+        case 0xD:
+            printf("DRW %x, %x, %x\n", x, y, n);
+            break;
+        case 0xE:
+            if (kk == 0x9E) {
+                printf("SKP %x\n", x);
+            } else if (kk == 0xA1) {
+                printf("SKNP %x\n", x);
+            }
+            break;
+        case 0xF:
+            switch (kk) {
+                case 0x07:
+                    // LD V[x], DT: V[x] = DT
+                    cpu->v[x] = cpu->dt;
+                    break;
+                case 0x0A:
+                    printf("LD %x, K\n", x);
+                    break;
+                case 0x15:
+                    // LD DT, V[x] -> DT = V[x]
+                    cpu->dt = cpu->v[x];
+                    break;
+                case 0x18:
+                    // LD ST, V[x] -> ST = V[x]
+                    cpu->st = cpu->v[x];
+                    break;
+                case 0x1E:
+                    // ADD I, V[x] -> I += V[x]
+                    cpu->i += cpu->v[x];
+                    break;
+                case 0x29:
+                    printf("LD F, %x\n", x);
+                    break;
+                case 0x33:
+                    printf("LD B, %x\n", x);
+                    break;
+                case 0x55:
+                    printf("LD [I], %x\n", x);
+                    break;
+                case 0x65:
+                    printf("LD %x, [I]\n", x);
+                    break;
+            }
+            break;
+    }
+}
+
 int
 main(int argc, const char * argv[])
 {
@@ -95,166 +266,7 @@ main(int argc, const char * argv[])
 
     int mustQuit = 0;
     while (!mustQuit) {
-        // Read next opcode from memory.
-        uint16_t opcode = (mac.mem[mac.pc] << 8) | mac.mem[mac.pc + 1];
-        mac.pc = (mac.pc + 2) & 0xFFF;
-
-        // Extract bit nibbles from the opcode
-        uint16_t nnn = opcode & 0x0FFF;
-        uint8_t kk = opcode & 0xFF;
-        uint8_t n = opcode & 0xF;
-        uint8_t x = (opcode >> 8) & 0xF;
-        uint8_t y = (opcode >> 4) & 0xF;
-        uint8_t p = (opcode >> 12);
-        
-        // INFERNAL SWITCH CASE! (Sorry for all the heart attacks here u_u)
-        switch (p) {
-            case 0:
-                if (opcode == 0x00E0) {
-                    printf("CLS\n");
-                } else if (opcode == 0x00EE) {
-                    printf("RET\n");
-                }
-                break;
-            case 1:
-                // JP nnn: set program counter to nnn
-                mac.pc = nnn;
-                break;
-            case 2:
-                printf("CALL %x\n", nnn);
-                break;
-            case 3:
-                // SE x, kk: if V[x] == kk -> pc += 2
-                if (mac.v[x] == kk)
-                    mac.pc = (mac.pc + 2) & 0xFFF;
-                break;
-            case 4:
-                // SNE x, kk: if V[x] != kk -> pc += 2
-                if (mac.v[x] != kk)
-                    mac.pc = (mac.pc + 2) & 0xFFF;
-                break;
-            case 5:
-                // SE x, y: if V[x] == V[y] -> pc += 2
-                if (mac.v[x] == mac.v[y])
-                    mac.pc = (mac.pc + 2) & 0xFFF;
-                break;
-            case 6:
-                // LD x, kk: V[x] = kk
-                mac.v[x] = kk;
-                break;
-            case 7:
-                // ADD x, kk: V[x] = (V[x] + kk) & 0xFF
-                mac.v[x] = (mac.v[x] + kk) & 0xFF;
-                break;
-            case 8:
-                switch (n) {
-                    case 0:
-                        // LD x, y: V[x] = V[y]
-                        mac.v[x] = mac.v[y];
-                        break;
-                    case 1:
-                        // OR x, y: V[x] = V[x] | V[y];
-                        mac.v[x] |= mac.v[y];
-                        break;
-                    case 2:
-                        // AND x, y: V[x] = V[x] & V[y]
-                        mac.v[x] &= mac.v[y];
-                        break;
-                    case 3:
-                        // XOR x, y: V[x] = V[x] ^ V[y]
-                        mac.v[x] ^= mac.v[y];
-                        break;
-                    case 4:
-                        // ADD x, y: V[x] += V[y]
-                        mac.v[0xF] = (mac.v[x] > mac.v[x] + mac.v[y]);
-                        mac.v[x] += mac.v[y];
-                        break;
-                    case 5:
-                        // SUB x, y: V[x] -= V[y]
-                        mac.v[0xF] = (mac.v[x] > mac.v[y]);
-                        mac.v[x] -= mac.v[y];
-                        break;
-                    case 6:
-                        // SHR x : V[x] = V[x] >> 1
-                        mac.v[0xF] = (mac.v[x] & 1);
-                        mac.v[x] >>= 1;
-                        break;
-                    case 7:
-                        // SUBN x, y: V[x] = V[y] - V[x]
-                        mac.v[0xF] = (mac.v[y] > mac.v[x]);
-                        mac.v[x] = mac.v[y] - mac.v[x];
-                        break;
-                    case 0xE:
-                        // SHL x : V[x] = V[x] << 1
-                        mac.v[0xF] = ((mac.v[x] & 0x80) != 0);
-                        mac.v[x] <<= 1;
-                        break;
-                }
-                break;
-            case 9:
-                // SNE x, y: V[x] != V[y] -> pc += 2;
-                if (mac.v[x] != mac.v[y])
-                    mac.pc = (mac.pc + 2) & 0xFFF;
-                break;
-            case 0xA:
-                // LD I, x : I = nnn
-                mac.i = nnn;
-                printf("LD I, %x\n", nnn);
-                break;
-            case 0xB:
-                // JP V0, nnn: pc = V[0] + nnn
-                mac.pc = mac.v[0] + nnn;
-                break;
-            case 0xC:
-                printf("RND %x, %x\n", x, kk);
-                break;
-            case 0xD:
-                printf("DRW %x, %x, %x\n", x, y, n);
-                break;
-            case 0xE:
-                if (kk == 0x9E) {
-                    printf("SKP %x\n", x);
-                } else if (kk == 0xA1) {
-                    printf("SKNP %x\n", x);
-                }
-                break;
-            case 0xF:
-                switch (kk) {
-                    case 0x07:
-                        // LD V[x], DT: V[x] = DT
-                        mac.v[x] = mac.dt;
-                        break;
-                    case 0x0A:
-                        printf("LD %x, K\n", x);
-                        break;
-                    case 0x15:
-                        // LD DT, V[x] -> DT = V[x]
-                        mac.dt = mac.v[x];
-                        break;
-                    case 0x18:
-                        // LD ST, V[x] -> ST = V[x]
-                        mac.st = mac.v[x];
-                        break;
-                    case 0x1E:
-                        // ADD I, V[x] -> I += V[x]
-                        mac.i += mac.v[x];
-                        break;
-                    case 0x29:
-                        printf("LD F, %x\n", x);
-                        break;
-                    case 0x33:
-                        printf("LD B, %x\n", x);
-                        break;
-                    case 0x55:
-                        printf("LD [I], %x\n", x);
-                        break;
-                    case 0x65:
-                        printf("LD %x, [I]\n", x);
-                        break;
-                }
-                break;
-        }
-
+        step_machine(&mac);
     }
 
     return 0;
