@@ -276,8 +276,7 @@ main(int argc, const char * argv[])
     SDL_Init(SDL_INIT_EVERYTHING);
     window = SDL_CreateWindow("CHIP-8 Emulator",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              640, 320, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
-                                        | SDL_WINDOW_RESIZABLE);
+                              640, 320, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
                                 SDL_TEXTUREACCESS_STREAMING, 64, 32);
