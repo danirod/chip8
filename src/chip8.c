@@ -51,12 +51,8 @@ struct machine_t
 void
 init_machine(struct machine_t* machine)
 {
-    machine->sp = machine->i = machine->dt = machine->st = 0;
+    memset(machine, 0x00, sizeof(struct machine_t));
     machine->pc = 0x200;
-
-    memset(machine->mem, 0, MEMSIZ);
-    memset(machine->stack, 0, 32);
-    memset(machine->v, 0, 16);
 }
 
 /**
