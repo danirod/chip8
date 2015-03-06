@@ -200,7 +200,7 @@ step_machine(struct machine_t* cpu)
             break;
         case 0xB:
             // JP V0, nnn: pc = V[0] + nnn
-            cpu->pc = cpu->v[0] + nnn;
+            cpu->pc = (cpu->v[0] + nnn) & 0xFFF;
             break;
         case 0xC:
             printf("RND %x, %x\n", x, kk);
