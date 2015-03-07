@@ -43,6 +43,25 @@ char hexcodes[] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
+char keys[] = {
+    SDL_SCANCODE_X, // 0
+    SDL_SCANCODE_1, // 1
+    SDL_SCANCODE_2, // 2
+    SDL_SCANCODE_3, // 3
+    SDL_SCANCODE_Q, // 4
+    SDL_SCANCODE_W, // 5
+    SDL_SCANCODE_E, // 6
+    SDL_SCANCODE_A, // 7
+    SDL_SCANCODE_S, // 8
+    SDL_SCANCODE_D, // 9
+    SDL_SCANCODE_Z, // A
+    SDL_SCANCODE_C, // B
+    SDL_SCANCODE_4, // C
+    SDL_SCANCODE_R, // D
+    SDL_SCANCODE_F, // E
+    SDL_SCANCODE_V  // F
+};
+
 /**
  * Main data structure for holding information and state about processor.
  * Memory, stack, and register set is all defined here.
@@ -60,7 +79,16 @@ struct machine_t
     uint8_t dt, st;             // Timers
 
     char screen[2048];          // Pantalla
+    char wait_key;              // Tecla que estoy esperando
 };
+
+static int
+is_key_down(char key)
+{
+    const Uint8* sdl_keys = SDL_GetKeyboardState(NULL);
+    Uint8 real_key = keys[(int) key];
+    return sdl_keys[real_key];
+}
 
 static void
 expansion(char* from, Uint32* to)
@@ -83,6 +111,7 @@ init_machine(struct machine_t* machine)
     memset(machine, 0x00, sizeof(struct machine_t));
     memcpy(machine->mem + 0x50, hexcodes, 80);
     machine->pc = 0x200;
+    machine->wait_key = -1;
 }
 
 /**
@@ -263,9 +292,13 @@ step_machine(struct machine_t* cpu)
             break;
         case 0xE:
             if (kk == 0x9E) {
-                printf("SKP %x\n", x);
+                // SKP x: if key V[x] is down, skip next instruction
+                if (is_key_down(cpu->v[x]))
+                    cpu->pc = (cpu->pc + 2) & 0xFFF;
             } else if (kk == 0xA1) {
-                printf("SKNP %x\n", x);
+                // SKNP x
+                if (!is_key_down(cpu->v[x]))
+                    cpu->pc = (cpu->pc + 2) & 0xFFF;
             }
             break;
         case 0xF:
@@ -275,7 +308,8 @@ step_machine(struct machine_t* cpu)
                     cpu->v[x] = cpu->dt;
                     break;
                 case 0x0A:
-                    printf("LD %x, K\n", x);
+                    // LD X, K
+                    cpu->wait_key = x;
                     break;
                 case 0x15:
                     // LD DT, V[x] -> DT = V[x]
@@ -362,7 +396,17 @@ main(int argc, const char * argv[])
         }
         
         if (SDL_GetTicks() - cycles > 1) {
-            step_machine(&mac);
+            if (mac.wait_key == -1) {
+                step_machine(&mac);
+            } else {
+                for (int key = 0; key <= 0xF; key++) {
+                    if (is_key_down(key)) {
+                        mac.v[(int) mac.wait_key] = key;
+                        mac.wait_key = -1;
+                        break;
+                    }
+                }
+            }
             cycles = SDL_GetTicks();
         }
 
