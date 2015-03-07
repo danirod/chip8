@@ -19,9 +19,29 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
 #include <SDL2/SDL.h>
 
 #define MEMSIZ 4096 // How much memory can handle the CHIP-8
+
+char hexcodes[] = {
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
 
 /**
  * Main data structure for holding information and state about processor.
@@ -38,7 +58,16 @@ struct machine_t
     uint8_t v[16];              // 16 general purpose registers
     uint16_t i;                 // Special I register
     uint8_t dt, st;             // Timers
+
+    char screen[2048];          // Pantalla
 };
+
+static void
+expansion(char* from, Uint32* to)
+{
+    for (int i = 0; i < 2048; i++)
+        to[i] = ( from[i]) ? -1 : 0;
+}
 
 /**
  * Initializes to cero a machine data structure. This function should be
@@ -52,6 +81,7 @@ void
 init_machine(struct machine_t* machine)
 {
     memset(machine, 0x00, sizeof(struct machine_t));
+    memcpy(machine->mem + 0x50, hexcodes, 80);
     machine->pc = 0x200;
 }
 
@@ -108,9 +138,11 @@ step_machine(struct machine_t* cpu)
     switch (p) {
         case 0:
             if (opcode == 0x00e0) {
-                printf("cls\n");
+                // CLS
+                memset(cpu->screen, 0, 2048);
             } else if (opcode == 0x00ee) {
-                printf("ret\n");
+                if (cpu->sp > 0)
+                    cpu->pc = cpu->stack[--cpu->sp];
             }
             break;
         case 1:
@@ -118,7 +150,10 @@ step_machine(struct machine_t* cpu)
             cpu->pc = nnn;
             break;
         case 2:
-            printf("call %x\n", nnn);
+            // call nnn: stack[sp++] = pc, pc = nnn
+            if (cpu->sp < 16)
+                cpu->stack[cpu->sp++] = cpu->pc;
+            cpu->pc = nnn;
             break;
         case 3:
             // se x, kk: if v[x] == kk -> pc += 2
@@ -196,17 +231,35 @@ step_machine(struct machine_t* cpu)
         case 0xA:
             // LD I, x : I = nnn
             cpu->i = nnn;
-            printf("LD I, %x\n", nnn);
             break;
         case 0xB:
             // JP V0, nnn: pc = V[0] + nnn
             cpu->pc = (cpu->v[0] + nnn) & 0xFFF;
             break;
         case 0xC:
-            printf("RND %x, %x\n", x, kk);
+            // RND x, kk: V[x] = random() % kk
+            cpu->v[x] = rand() & kk;
             break;
         case 0xD:
-            printf("DRW %x, %x, %x\n", x, y, n);
+            /*
+             * DRW x, y, n:
+             * Dibuja un sprite en el pixel v[x], v[y].
+             * El número de filas a dibujar se dice con n.
+             * El sprite se saca de la dirección de memoria [I].
+             */
+            cpu->v[15] = 0;
+            for (int j = 0; j < n; j++) {
+                uint8_t sprite = cpu->mem[cpu->i + j];
+                for (int i = 0; i < 8; i++) {
+                    int px = (cpu->v[x] + i) & 63;
+                    int py = (cpu->v[y] + j) & 31;
+                    int pos = 64 * py + px;
+                    int pixel = (sprite & (1 << (7-i))) != 0;
+                    
+                    cpu->v[15] |= (cpu->screen[pos] & pixel);
+                    cpu->screen[pos] ^= pixel;
+                }
+            }
             break;
         case 0xE:
             if (kk == 0x9E) {
@@ -237,16 +290,24 @@ step_machine(struct machine_t* cpu)
                     cpu->i += cpu->v[x];
                     break;
                 case 0x29:
-                    printf("LD F, %x\n", x);
+                    // LD F, V[x] -> I = [posicion de memoria del número V[x]]
+                    cpu->i = 0x50 + (cpu->v[x] & 0xF) * 5;
                     break;
                 case 0x33:
-                    printf("LD B, %x\n", x);
+                    // LD B, V[x] = loads BCD number in memory
+                    cpu->mem[cpu->i + 2] = cpu->v[x] % 10;
+                    cpu->mem[cpu->i + 1] = (cpu->v[x] / 10) % 10;
+                    cpu->mem[cpu->i] = (cpu->v[x] / 100); 
                     break;
                 case 0x55:
-                    printf("LD [I], %x\n", x);
+                    // LD [I], X -> guarda en I
+                    for (int reg = 0; reg <= x; reg++)
+                        cpu->mem[cpu->i + reg] = cpu->v[reg];
                     break;
                 case 0x65:
-                    printf("LD %x, [I]\n", x);
+                    // LD X, [I] -> lee de I
+                    for (int reg = 0; reg <= x; reg++)
+                        cpu->v[reg] = cpu->mem[cpu->i + reg];
                     break;
             }
             break;
@@ -263,11 +324,13 @@ main(int argc, const char * argv[])
     SDL_Event event;
     struct machine_t mac;
     int mustQuit = 0;
- 
+    int last_ticks = 0;
+
     // Init emulator
     init_machine(&mac);
     load_rom(&mac);
-    
+    srand(time(NULL));
+
     // Init SDL engine
     SDL_Init(SDL_INIT_EVERYTHING);
     window = SDL_CreateWindow("CHIP-8 Emulator",
@@ -278,29 +341,44 @@ main(int argc, const char * argv[])
                                 SDL_TEXTUREACCESS_STREAMING, 64, 32);
     
     // Write some dummy white background
-    surface = SDL_CreateRGBSurfaceFrom(NULL, 64, 32, 32, 0,
+    surface = SDL_CreateRGBSurface(0, 64, 32, 32,
                                        0x00FF0000,
                                        0x0000FF00,
                                        0x000000FF,
                                        0xFF000000);
     SDL_LockTexture(texture, NULL, &surface->pixels, &surface->pitch);
-    memset(surface->pixels, 0xFF, surface->pitch * 32);
+    expansion(mac.screen, (Uint32 *) surface->pixels);
     SDL_UnlockTexture(texture);
+    
+    int cycles = 0;
 
     while (!mustQuit) {
-        // step_machine(&mac);
-        // Disabled. You'll see at the next live coding session why.
-
-        SDL_WaitEvent(&event);
-        switch (event.type) {
-            case SDL_QUIT:
-                mustQuit = 1;
-                break;
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    mustQuit = 1;
+                    break;
+            }
+        }
+        
+        if (SDL_GetTicks() - cycles > 1) {
+            step_machine(&mac);
+            cycles = SDL_GetTicks();
         }
 
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
+        if (SDL_GetTicks() - last_ticks > (1000 / 60)) {
+            if (mac.dt) mac.dt--;
+            if (mac.st) mac.st--;
+
+            SDL_LockTexture(texture, NULL, &surface->pixels, &surface->pitch);
+            expansion(mac.screen, (Uint32 *) surface->pixels);
+            SDL_UnlockTexture(texture);
+
+            // SDL_RenderClear(renderer);
+            SDL_RenderCopy(renderer, texture, NULL, NULL);
+            SDL_RenderPresent(renderer);
+            last_ticks = SDL_GetTicks();
+        }
     }
     
     // Dispose SDL engine.
