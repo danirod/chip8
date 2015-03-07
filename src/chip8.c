@@ -121,14 +121,14 @@ init_machine(struct machine_t* machine)
  *
  * @param machine machine data structure to load the ROM into.
  */
-void
-load_rom(struct machine_t* machine)
+int
+load_rom(const char* file, struct machine_t* machine)
 {
-    FILE* fp = fopen("PONG", "r");
+    FILE* fp = fopen(file, "r");
     // TODO: Should I use exit or return a flag value? Discuss! 
     if (fp == NULL) {
         fprintf(stderr, "Cannot open ROM file.\n");
-        exit(1);
+        return 1;
     }
     
     // Use the fseek/ftell/fseek trick to retrieve file size.
@@ -136,9 +136,15 @@ load_rom(struct machine_t* machine)
     int length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     
+    if (length > 3584) {
+        fprintf(stderr, "ROM too large.\n");
+        return 1;
+    }
+
     // Then oh, please, please, please read the file.
     fread(machine->mem + 0x200, length, 1, fp);
     fclose(fp);
+    return 0;
 }
 
 /**
@@ -360,9 +366,17 @@ main(int argc, const char * argv[])
     int mustQuit = 0;
     int last_ticks = 0;
 
+    // Read ROM file to load.
+    if (argc == 1) {
+        fprintf(stderr, "Usage: %s ROMFILE\n", argv[0]);
+        return 1;
+    }
+
     // Init emulator
     init_machine(&mac);
-    load_rom(&mac);
+    if (load_rom(argv[1], &mac)) {
+        return 1;
+    }
     srand(time(NULL));
 
     // Init SDL engine
