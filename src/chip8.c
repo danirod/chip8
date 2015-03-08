@@ -24,6 +24,12 @@
 
 #define MEMSIZ 4096 // How much memory can handle the CHIP-8
 
+/**
+ * These are the bitmaps for the sprites that represent numbers.
+ * This array should be memcopied to memory address 0x050. LD F, Vx
+ * instruction sets I register to the memory address of a provided
+ * number.
+ */
 char hexcodes[] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -43,6 +49,12 @@ char hexcodes[] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
+/**
+ * This array maps a SDL scancode to the CHIP-8 key that serves as index
+ * for the array. For instance, pressing key keys[5] on your keyboard will
+ * make your CHIP-8 understand as if you pressed the [5] key. Remember that
+ * CHIP-8 uses a 16-key keyboard with keys labeled 0..F.
+ */
 char keys[] = {
     SDL_SCANCODE_X, // 0
     SDL_SCANCODE_1, // 1
@@ -78,20 +90,48 @@ struct machine_t
     uint16_t i;                 // Special I register
     uint8_t dt, st;             // Timers
 
-    char screen[2048];          // Pantalla
-    char wait_key;              // Tecla que estoy esperando
+    char screen[2048];          // Screen bitmap
+    char wait_key;              // Key the CHIP-8 is idle waiting for.
 };
 
+/**
+ * Checks if a given key is pressed. This function acceps a CHIP-8 key in
+ * range 0-F. It will check using SDL if the PC keyboard mapped to that
+ * CHIP-8 key is acutally being pressed or not.
+ *
+ * @param key CHIP-8 key to be checked.
+ * @return 0 if that key is not down; != 0 if that key IS down.
+ */
 static int
 is_key_down(char key)
 {
-    const Uint8* sdl_keys = SDL_GetKeyboardState(NULL);
-    Uint8 real_key = keys[(int) key];
+    const Uint8* sdl_keys; // SDL key array information
+    Uint8 real_key; // Mapped SDL scancode for the given key
+    if (key < 0 || key > 15) return 0; // check those bounds.
+
+    sdl_keys = SDL_GetKeyboardState(NULL);
+    real_key = keys[(int) key];
     return sdl_keys[real_key];
 }
 
+/**
+ * Expand a machine_t bitmap into a SDL 32-bit surface bitmap. This function
+ * will work provided some requirements are meet. Both arrays must be 2048
+ * positions long. Input array must be a char array where each position is
+ * either 0 or 1.
+ *
+ * Output array will be expanded in a format that is compatible with SDL
+ * surfaces. Each 0 on input array will be converted to a 0 on output array,
+ * which will result on no pixel being drawn on that position. Each 1 on
+ * input array will be converted to a -1 on output array, which being unsigned
+ * will result on every single bit of that position being 1 and thus
+ * plotting a white pixel.
+ *
+ * @param from input array where the struct machine_t bitmap is from.
+ * @param to output array where the pixels will be blitted.
+ */
 static void
-expansion(char* from, Uint32* to)
+expand_screen(char* from, Uint32* to)
 {
     for (int i = 0; i < 2048; i++)
         to[i] = ( from[i]) ? -1 : 0;
@@ -125,7 +165,6 @@ int
 load_rom(const char* file, struct machine_t* machine)
 {
     FILE* fp = fopen(file, "r");
-    // TODO: Should I use exit or return a flag value? Discuss! 
     if (fp == NULL) {
         fprintf(stderr, "Cannot open ROM file.\n");
         return 1;
@@ -135,13 +174,17 @@ load_rom(const char* file, struct machine_t* machine)
     fseek(fp, 0, SEEK_END);
     int length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    
+   
+    // Check the length of the rom. Must be as much 3584 bytes long, which
+    // is 4096 - 512. Since first 512 bytes of memory are reserved, program
+    // code can only allocate up to 3584 bytes. Must check for bounds in
+    // order to avoid buffer overflows.
     if (length > 3584) {
         fprintf(stderr, "ROM too large.\n");
         return 1;
     }
 
-    // Then oh, please, please, please read the file.
+    // Everything is OK, read the ROM.
     fread(machine->mem + 0x200, length, 1, fp);
     fclose(fp);
     return 0;
@@ -173,114 +216,214 @@ step_machine(struct machine_t* cpu)
     switch (p) {
         case 0:
             if (opcode == 0x00e0) {
-                // CLS
+                /*
+                 * 00E0: CLS
+                 * Clear the screen
+                 */
                 memset(cpu->screen, 0, 2048);
             } else if (opcode == 0x00ee) {
+                /*
+                 * 00EE: RET
+                 * Return from subroutine.
+                 */
                 if (cpu->sp > 0)
                     cpu->pc = cpu->stack[--cpu->sp];
             }
             break;
+
         case 1:
-            // jp nnn: set program counter to nnn
+            /*
+             * 1NNN: JMP NNN
+             * Jump to address location NNN.
+             */
             cpu->pc = nnn;
             break;
+
         case 2:
-            // call nnn: stack[sp++] = pc, pc = nnn
+            /*
+             * 2NNN: CALL NNN
+             * Call subroutine starting at address location NNN.
+             */
             if (cpu->sp < 16)
                 cpu->stack[cpu->sp++] = cpu->pc;
             cpu->pc = nnn;
             break;
         case 3:
-            // se x, kk: if v[x] == kk -> pc += 2
+            /*
+             * 3XKK: SE X, KK
+             * Skip next instruction if V[X] == KK
+             */
             if (cpu->v[x] == kk)
                 cpu->pc = (cpu->pc + 2) & 0xfff;
             break;
+
         case 4:
-            // sne x, kk: if v[x] != kk -> pc += 2
+            /*
+             * 4XKK: SNE X, KK
+             * SKip next instruction if V[X] != KK
+             */
             if (cpu->v[x] != kk)
                 cpu->pc = (cpu->pc + 2) & 0xfff;
             break;
+
         case 5:
-            // se x, y: if v[x] == v[y] -> pc += 2
+            /*
+             * 5XY0: SE X, Y
+             * Skip next instruction if V[X] == V[Y].
+             */
             if (cpu->v[x] == cpu->v[y])
                 cpu->pc = (cpu->pc + 2) & 0xfff;
             break;
+
         case 6:
-            // ld x, kk: v[x] = kk
+            /*
+             * 6XKK: LD X, KK
+             * Set V[x] = KK.
+             */
             cpu->v[x] = kk;
             break;
+
         case 7:
-            // add x, kk: v[x] = (v[x] + kk) & 0xff
+            /*
+             * 7XKK: ADD X, KK
+             * Add KK to V[X].
+             */
             cpu->v[x] = (cpu->v[x] + kk) & 0xff;
             break;
+
         case 8:
             switch (n) {
                 case 0:
-                    // ld x, y: v[x] = v[y]
+                    /*
+                     * 8XY0: LD X, Y
+                     * Set V[x] = V[y]
+                     */
                     cpu->v[x] = cpu->v[y];
                     break;
+
                 case 1:
-                    // or x, y: v[x] = v[x] | v[y];
+                    /*
+                     * 8XY1: OR X, Y
+                     * Set V[x] to V[x] OR V[y].
+                     */
                     cpu->v[x] |= cpu->v[y];
                     break;
+                    
                 case 2:
-                    // and x, y: v[x] = v[x] & v[y]
+                    /*
+                     * 8XY2: AND X, Y
+                     * Set V[x] to V[x] AND V[y].
+                     */
                     cpu->v[x] &= cpu->v[y];
                     break;
+
                 case 3:
-                    // xor x, y: v[x] = v[x] ^ v[y]
+                    /*
+                     * 8XY3: XOR X, Y
+                     * Set V[x] to V[x] XOR V[y]
+                     */
                     cpu->v[x] ^= cpu->v[y];
                     break;
+
                 case 4:
-                    // add x, y: v[x] += v[y]
+                    /*
+                     * 8XY4: ADD X, Y
+                     * Add V[y] to V[x]. V[15] is used as carry flag: if
+                     * there is a carry, V[15] must be set to 1, else to 0.
+                     */
                     cpu->v[0xf] = (cpu->v[x] > cpu->v[x] + cpu->v[y]);
                     cpu->v[x] += cpu->v[y];
                     break;
+
                 case 5:
-                    // SUB x, y: V[x] -= V[y]
+                    /*
+                     * 8XY5: SUB X, Y
+                     * Substract V[y] from V[x]. V[15] is used as borrow flag:
+                     * if there is a borrow, V[15] must be set to 0, else 
+                     * to 1. Which in practice is easier to check as if
+                     * V[x] is greater than V[y].
+                     */
                     cpu->v[0xF] = (cpu->v[x] > cpu->v[y]);
                     cpu->v[x] -= cpu->v[y];
                     break;
+
                 case 6:
-                    // SHR x : V[x] = V[x] >> 1
+                    /*
+                     * 8X06: SHR X
+                     * Shifts right V[x]. Least significant bit from V[x]
+                     * before shifting will be moved to V[15]. Thus, V[15]
+                     * will be set to 1 if V[x] was odd before shifting.
+                     */
                     cpu->v[0xF] = (cpu->v[x] & 1);
                     cpu->v[x] >>= 1;
                     break;
+
                 case 7:
-                    // SUBN x, y: V[x] = V[y] - V[x]
+                    /*
+                     * 8XY7: SUBN X, Y
+                     * Substract V[x] from V[y] and store the result in V[x].
+                     * V[15] is used as a borrow flag in the same sense than
+                     * SUB X, Y did: V[15] is set to 0 if there is borrow,
+                     * else to 1. Which is easier to check as if V[y] is
+                     * greater than V[x].
+                     */
                     cpu->v[0xF] = (cpu->v[y] > cpu->v[x]);
                     cpu->v[x] = cpu->v[y] - cpu->v[x];
                     break;
+
                 case 0xE:
-                    // SHL x : V[x] = V[x] << 1
+                    /*
+                     * 8X0E: SHL X
+                     * Shifts left V[x]. Most significant bit from V[x] before
+                     * shifting will be moved to V[15].
+                     */
                     cpu->v[0xF] = ((cpu->v[x] & 0x80) != 0);
                     cpu->v[x] <<= 1;
                     break;
             }
             break;
+
         case 9:
-            // SNE x, y: V[x] != V[y] -> pc += 2;
+            /*
+             * 9XY0: SNE X, Y
+             * Skip next instruction if V[x] != V[y].
+             */
             if (cpu->v[x] != cpu->v[y])
                 cpu->pc = (cpu->pc + 2) & 0xFFF;
             break;
+            
         case 0xA:
-            // LD I, x : I = nnn
+            /*
+             * ANNN: LD I, NNN
+             * Will set I register to NNN.
+             */
             cpu->i = nnn;
             break;
+
         case 0xB:
-            // JP V0, nnn: pc = V[0] + nnn
+            /*
+             * BNNN: JP V0, NNN
+             * Will jump to memory address (V[0] + NNN).
+             */
             cpu->pc = (cpu->v[0] + nnn) & 0xFFF;
             break;
+
         case 0xC:
-            // RND x, kk: V[x] = random() % kk
+            /*
+             * CXKK: RND X, KK
+             * Will get a random value, then bitmasking it using KK as an
+             * AND mask, and then save that random value to V[x].
+             */
             cpu->v[x] = rand() & kk;
             break;
+
         case 0xD:
             /*
-             * DRW x, y, n:
-             * Dibuja un sprite en el pixel v[x], v[y].
-             * El número de filas a dibujar se dice con n.
-             * El sprite se saca de la dirección de memoria [I].
+             * DXYN: DRW X, Y, N
+             * Draw a sprite on screen. The sprite will be drawn on screen
+             * position described by V[x],V[y]. Sprites are 8 pixels wide
+             * and the number of rows to draw is indicated through N.
+             * The sprite to draw is pointed using I register.
              */
             cpu->v[15] = 0;
             for (int j = 0; j < n; j++) {
@@ -296,56 +439,108 @@ step_machine(struct machine_t* cpu)
                 }
             }
             break;
+
         case 0xE:
             if (kk == 0x9E) {
-                // SKP x: if key V[x] is down, skip next instruction
+                /*
+                 * EX9E: SKP X
+                 * Skip next instruction if key indicated in V[x] is down.
+                 */
                 if (is_key_down(cpu->v[x]))
                     cpu->pc = (cpu->pc + 2) & 0xFFF;
             } else if (kk == 0xA1) {
-                // SKNP x
+                /*
+                 * EXA1: SKNP X
+                 * Skip next instruction if key indicated in V[x] is not down.
+                 */
                 if (!is_key_down(cpu->v[x]))
                     cpu->pc = (cpu->pc + 2) & 0xFFF;
             }
             break;
+
         case 0xF:
             switch (kk) {
                 case 0x07:
-                    // LD V[x], DT: V[x] = DT
+                    /*
+                     * FX07: LD X, DT
+                     * Set V[x] to whatever is on DT register.
+                     */
                     cpu->v[x] = cpu->dt;
                     break;
+
                 case 0x0A:
-                    // LD X, K
+                    /*
+                     * FX0A: LD X, K
+                     * Halt the machine until a key is pressed, then save
+                     * the key number pressed in register V[x].
+                     */
                     cpu->wait_key = x;
                     break;
+
                 case 0x15:
-                    // LD DT, V[x] -> DT = V[x]
+                    /*
+                     * FX15: LD DT, X
+                     * Will set DT register to the value on V[x].
+                     */
                     cpu->dt = cpu->v[x];
                     break;
+
                 case 0x18:
-                    // LD ST, V[x] -> ST = V[x]
+                    /*
+                     * FX18: LD ST, X
+                     * Will set ST register to the value on V[x].
+                     */
                     cpu->st = cpu->v[x];
                     break;
+
                 case 0x1E:
-                    // ADD I, V[x] -> I += V[x]
+                    /*
+                     * FX1E: ADD I, X
+                     * Add V[x] to whatever is on I register.
+                     */
                     cpu->i += cpu->v[x];
                     break;
+                    
                 case 0x29:
-                    // LD F, V[x] -> I = [posicion de memoria del número V[x]]
+                    /*
+                     * FX29: LD F, X
+                     * Will set I to the address location where the sprite
+                     * for drawing the number in V[x] is.
+                     */
                     cpu->i = 0x50 + (cpu->v[x] & 0xF) * 5;
                     break;
+
                 case 0x33:
-                    // LD B, V[x] = loads BCD number in memory
+                    /*
+                     * FX33: LD B, X
+                     * Will set the value in memory address I, I+1 and I+2
+                     * so that they represent the memory addresses for both
+                     * hundreds, tens and ones for the number in V[x]
+                     * register encoded in BCD.
+                     */
                     cpu->mem[cpu->i + 2] = cpu->v[x] % 10;
                     cpu->mem[cpu->i + 1] = (cpu->v[x] / 10) % 10;
                     cpu->mem[cpu->i] = (cpu->v[x] / 100); 
                     break;
+
                 case 0x55:
-                    // LD [I], X -> guarda en I
+                    /*
+                     * FX55: LD [I], X
+                     * Will save in memory registers from V[0] to V[x] in
+                     * memory addresses I to I+x. V[x] is included in what
+                     * gets saved.
+                     */
                     for (int reg = 0; reg <= x; reg++)
                         cpu->mem[cpu->i + reg] = cpu->v[reg];
                     break;
+
                 case 0x65:
-                    // LD X, [I] -> lee de I
+                    /*
+                     * FX65: LD X, [I]
+                     * Will read from memory addresses I to I+x and store
+                     * each value in registers V[0] to V[x]. V[x] is included
+                     * in what is read.
+                     */
                     for (int reg = 0; reg <= x; reg++)
                         cpu->v[reg] = cpu->mem[cpu->i + reg];
                     break;
@@ -395,7 +590,7 @@ main(int argc, const char * argv[])
                                        0x000000FF,
                                        0xFF000000);
     SDL_LockTexture(texture, NULL, &surface->pixels, &surface->pitch);
-    expansion(mac.screen, (Uint32 *) surface->pixels);
+    expand_screen(mac.screen, (Uint32 *) surface->pixels);
     SDL_UnlockTexture(texture);
     
     int cycles = 0;
@@ -429,7 +624,7 @@ main(int argc, const char * argv[])
             if (mac.st) mac.st--;
 
             SDL_LockTexture(texture, NULL, &surface->pixels, &surface->pitch);
-            expansion(mac.screen, (Uint32 *) surface->pixels);
+            expand_screen(mac.screen, (Uint32 *) surface->pixels);
             SDL_UnlockTexture(texture);
 
             // SDL_RenderClear(renderer);
