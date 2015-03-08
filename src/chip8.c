@@ -550,7 +550,7 @@ step_machine(struct machine_t* cpu)
 }
 
 int
-main(int argc, const char * argv[])
+main(int argc, char** argv)
 {
     SDL_Window* window;
     SDL_Renderer* renderer;
