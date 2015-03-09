@@ -164,7 +164,7 @@ init_machine(struct machine_t* machine)
 int
 load_rom(const char* file, struct machine_t* machine)
 {
-    FILE* fp = fopen(file, "r");
+    FILE* fp = fopen(file, "rb");
     if (fp == NULL) {
         fprintf(stderr, "Cannot open ROM file.\n");
         return 1;
