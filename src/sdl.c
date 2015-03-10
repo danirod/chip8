@@ -61,7 +61,11 @@ ERROR_WINDOW:
 void
 destroy_context(struct context_t* context)
 {
-    SDL_FreeSurface(context->surface);
+    // Seems that DestroyTexture is already freeing context->surface?
+    // I don't know, I haven't reviewed SDL2 code, but it crashes
+    // if I uncomment this line so I guess so.
+    // SDL_FreeSurface(context->surface);
+
     SDL_DestroyTexture(context->texture);
     SDL_DestroyRenderer(context->renderer);
     SDL_DestroyWindow(context->window);
