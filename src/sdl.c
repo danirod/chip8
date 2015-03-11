@@ -24,37 +24,67 @@
 int
 init_context(struct context_t* context)
 {
+    /*
+     * This code simulates exception treatment in C using `goto`.
+     * This is actually one of the clever situations where I think that
+     * `goto` comes handy and where I'm not against it. I'm not an
+     * enlightened supporter for `goto` either but I'm fed up with those
+     * jerks that just overly repeat "goto is bad" because somebody told
+     * them some time ago without even considering it. Of course I wouldn't
+     * use `goto` where any other structure goes better, but if you are
+     * very conscious on what you do and it makes a more concise syntax,
+     * why not. Of course, if you are on your first year of programming
+     * you should avoid `goto` until you are strong on structure programming.
+     *
+     * In this context, I need to call a set of SDL functions that are
+     * chained: eg, the return of one function is the parameter of the next.
+     * And I need to rollback those functions if any of them cracks.
+     * My Exception Treatment Table at the bottom of this function rollbacks
+     * everything and it has labels before every rollback function. If any
+     * SDL function fails it just has to jump to the appropiate label and
+     * start rollbacking from that entrypoint.
+     */
+     
     context->window = SDL_CreateWindow("CHIP-8 Emulator",
-                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              640, 320, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
-    if (context->window == NULL)
-        goto ERROR_WINDOW;
+                                       SDL_WINDOWPOS_CENTERED,
+                                       SDL_WINDOWPOS_CENTERED,
+                                       640,
+                                       320,
+                                       SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+    if (context->window == NULL) {
+        goto exception_window;
+    }
 
     context->renderer = SDL_CreateRenderer(context->window,
                                            -1, SDL_RENDERER_ACCELERATED);
-    if (context->renderer == NULL)
-        goto ERROR_RENDERER;
+    if (context->renderer == NULL) {
+        goto exception_renderer;
+    }
 
     context->texture = SDL_CreateTexture(context->renderer,
                                          SDL_PIXELFORMAT_RGBA8888,
                                          SDL_TEXTUREACCESS_STREAMING, 64, 32);
-    if (context->texture == NULL)
-        goto ERROR_TEXTURE;
+    if (context->texture == NULL) {
+        goto exception_texture;
+    }
 
     context->surface = SDL_CreateRGBSurface(0, 64, 32, 32,
                                             0x00FF0000, 0x0000FF00,
                                             0x000000FF, 0xFF000000);
-    if (context->surface == NULL)
-        goto ERROR_SURFACE;
+    if (context->surface == NULL) {
+        goto exception_surface;
+    }
 
     return 0;
-ERROR_SURFACE:
+
+    // Exception Treatment:
+exception_surface:
     SDL_DestroyTexture(context->texture);
-ERROR_TEXTURE:
+exception_texture:
     SDL_DestroyRenderer(context->renderer);
-ERROR_RENDERER:
+exception_renderer:
     SDL_DestroyWindow(context->window);
-ERROR_WINDOW:
+exception_window: // Nothing left to rollback; nothing was created
     return 1;
 }
 
