@@ -84,8 +84,14 @@ main(int argc, char** argv)
         return 1;
 
     // Init SDL engine
-    SDL_Init(SDL_INIT_EVERYTHING);
-    init_context(&context);
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        fprintf(stderr, "SDL Initialization Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    if (init_context(&context) != 0) {
+        fprintf(stderr, "SDL Context Error: %s\n", SDL_GetError());
+        return 1;
+    }
 
     // Main loop.
     while (!must_quit) {
