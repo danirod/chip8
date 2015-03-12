@@ -1,3 +1,9 @@
+2015-03-12  Hugo Martin  <hugomartin89@gmail.com>
+
+	* src/sdl.c: Drop SDL_WINDOW_OPENGL so that SDL can decide
+	the best graphics backend based on the user platform.
+	* src/sdl.c: Remove unrequired SDL_Surface.
+
 2015-03-11  Dani Rodríguez  <danirod@outlook.com>
 
 	* src/chip8.c: Fix bug where return status from SDL
