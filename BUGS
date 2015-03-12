@@ -1,0 +1,13 @@
+Reporting bugs.-
+
+    If you find a bug on the emulator, you can report it at the issue
+    tracker for this project, which is located on GitHub, at
+
+        http://github.com/danirod/chip8
+
+    Please, only report bugs that can be reproduced. Report the steps
+    required to reproduce the bug, as well as the environment (operating
+    system, processor) you are running the emulator in. If you are
+    able to tell which ROM you were playing when the bug popped out
+    that would be better too.
+
