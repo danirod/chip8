@@ -15,13 +15,16 @@ a program is developed in a live streaming.
 ## Screenshots
 
 GNU/Linux:
+
 ![CHIP-8 Emulator on GNU/Linux](https://cloud.githubusercontent.com/assets/1568690/6553708/eba9d684-c653-11e4-867d-4f8406897809.png)
 
 MacOS X:
+
 ![CHIP-8 Emulator on MacOS X](https://cloud.githubusercontent.com/assets/1568690/6557044/50d409b2-c672-11e4-9b28-f84546f00612.png)
 
 
 Windows:
+
 ![CHIP-8 Emulator on Windows](https://cloud.githubusercontent.com/assets/1568690/6553101/5e538d44-c64d-11e4-9efd-cfef8e9a9a3b.png)
 
 ## Files
