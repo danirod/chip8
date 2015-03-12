@@ -44,13 +44,13 @@ init_context(struct context_t* context)
      * SDL function fails it just has to jump to the appropiate label and
      * start rollbacking from that entrypoint.
      */
-     
+
     context->window = SDL_CreateWindow("CHIP-8 Emulator",
                                        SDL_WINDOWPOS_CENTERED,
                                        SDL_WINDOWPOS_CENTERED,
                                        640,
                                        320,
-                                       SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+                                       SDL_WINDOW_SHOWN);
     if (context->window == NULL) {
         goto exception_window;
     }
