@@ -68,18 +68,9 @@ init_context(struct context_t* context)
         goto exception_texture;
     }
 
-    context->surface = SDL_CreateRGBSurface(0, 64, 32, 32,
-                                            0x00FF0000, 0x0000FF00,
-                                            0x000000FF, 0xFF000000);
-    if (context->surface == NULL) {
-        goto exception_surface;
-    }
-
     return 0;
 
     // Exception Treatment:
-exception_surface:
-    SDL_DestroyTexture(context->texture);
 exception_texture:
     SDL_DestroyRenderer(context->renderer);
 exception_renderer:
@@ -91,11 +82,6 @@ exception_window: // Nothing left to rollback; nothing was created
 void
 destroy_context(struct context_t* context)
 {
-    // Seems that DestroyTexture is already freeing context->surface?
-    // I don't know, I haven't reviewed SDL2 code, but it crashes
-    // if I uncomment this line so I guess so.
-    // SDL_FreeSurface(context->surface);
-
     SDL_DestroyTexture(context->texture);
     SDL_DestroyRenderer(context->renderer);
     SDL_DestroyWindow(context->window);
@@ -104,10 +90,13 @@ destroy_context(struct context_t* context)
 void
 render(struct context_t* context, struct machine_t* machine)
 {
+    void*   pixels;
+    int     pitch;
+
     // Updates SDL texture using what's on CPU screen.
     SDL_LockTexture(context->texture, NULL,
-                    &context->surface->pixels, &context->surface->pitch);
-    expand_screen(machine->screen, (Uint32 *) context->surface->pixels);
+                    &pixels, &pitch);
+    expand_screen(machine->screen, (Uint32 *) pixels);
     SDL_UnlockTexture(context->texture);
 
     // Render the texture on the renderer.
