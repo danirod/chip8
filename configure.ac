@@ -1,6 +1,6 @@
 # configure.ac
 
-AC_INIT([chip8], [0.1], [danirod@outlook.com])
+AC_INIT([chip8], [0.1.1], [danirod@outlook.com])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 # Check programs

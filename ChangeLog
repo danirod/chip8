@@ -1,3 +1,44 @@
-2015-02-27
-* Define data structure for CHIP-8 CPU.
-* Create project structure.
+2015-03-12  Hugo Martin  <hugomartin89@gmail.com>
+
+	* src/sdl.c: Drop SDL_WINDOW_OPENGL so that SDL can decide
+	the best graphics backend based on the user platform.
+	* src/sdl.c: Remove unrequired SDL_Surface.
+
+2015-03-11  Dani Rodríguez  <danirod@outlook.com>
+
+	* src/chip8.c: Fix bug where return status from SDL
+	and context initialization functions was not checked for
+	errors.	(Bug#2)
+	* src/sdl.c: Rename error tags to exception tags to make
+	them sound more pleasant.
+
+2015-03-10  Dani Rodríguez  <danirod@outlook.com>
+
+	* src/sdl.c: Fix bug where SDL surface was freed twice,
+	second time failing.	(Bug#3)
+
+2015-03-09  Dani Rodríguez  <danirod@outlook.com>
+	
+	* Version 0.1.0 released.
+	* src/Makefile.in: Code was splitted to multiple files.
+
+2015-03-07  Dani Rodríguez  <danirod@outlook.com>
+
+	* chip8.c: Implement DRW opcode. This opcode will now plot
+	pixels to the emulator screen, managed by an SDL window.
+	* chip8.c: Implement opcodes related to keyboard. CHIP-8
+	keyboard has 16 keys and they have been mapped to
+	1234/QWER/ASDF/ZXCV.
+
+2015-03-03  Dani Rodríguez  <danirod@outlook.com>
+
+	Implement CHIP-8 opcodes exception keyboard input and screen
+	output. The emulator now supports every opcode related to ALU
+	and memory.
+	* configure.ac: SDL 2.0 is now required to build the project.
+
+2015-02-27  Dani Rodríguez  <danirod@outlook.com>
+
+	Define CPU data structure and implement the main loop with
+	placeholders that print to stdout each opcode dissassembled.
+	* configure.ac: Create project structure.

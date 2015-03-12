@@ -15,16 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <time.h>
-#include <SDL2/SDL.h>
 
 #include "cpu.h"
 #include "keyboard.h"
 #include "sdl.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <SDL2/SDL.h>
 
 /**
  * Load a ROM into a machine. This function will open a file and load its
@@ -84,8 +83,14 @@ main(int argc, char** argv)
         return 1;
 
     // Init SDL engine
-    SDL_Init(SDL_INIT_EVERYTHING);
-    init_context(&context);
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        fprintf(stderr, "SDL Initialization Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    if (init_context(&context) != 0) {
+        fprintf(stderr, "SDL Context Error: %s\n", SDL_GetError());
+        return 1;
+    }
 
     // Main loop.
     while (!must_quit) {
