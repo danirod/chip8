@@ -17,7 +17,6 @@
  */
 
 #include "display.h"
-#include <SDL2/SDL_types.h>
 
 /**
  * These are the bitmaps for the sprites that represent numbers.

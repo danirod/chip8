@@ -15,16 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <time.h>
-#include <SDL2/SDL.h>
 
 #include "cpu.h"
 #include "keyboard.h"
 #include "sdl.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <SDL2/SDL.h>
 
 /**
  * Load a ROM into a machine. This function will open a file and load its
