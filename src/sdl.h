@@ -27,6 +27,7 @@
 #define SDL_H_
 
 #include "cpu.h"
+
 #include <SDL2/SDL.h>
 
 struct context_t

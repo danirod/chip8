@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <SDL2/SDL.h>
-#include "cpu.h"
+
 #include "sdl.h"
 #include "display.h"
 
