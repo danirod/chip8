@@ -23,33 +23,43 @@
 static float tone_pos = 0;
 static float tone_inc = 2 * 3.14159 * 1000 / 44100;
 
-// sinStep = 2 * M_PI * reqFreq / FREQ;
+struct audiodata_t
+{
+    float tone_pos;
+    float tone_inc;
+};
 
 static void
 feed(void* udata, Uint8* stream, int len)
 {
+    struct audiodata_t* audio = (struct audiodata_t *) udata;
     for (int i = 0; i < len; i++) {
-        stream[i] = sinf(tone_pos) + 127;
-        tone_pos += tone_inc;
+        stream[i] = sinf(audio->tone_pos) + 127;
+        audio->tone_pos += audio->tone_inc;
     }
 }
 
 SDL_AudioSpec*
 init_audiospec(void)
 {
+    struct audiodata_t* audio = malloc(sizeof(struct audiodata_t));
+    audio->tone_pos = 0;
+    audio->tone_inc = 2 * 3.14159 * 1000 / 44100;
+
     SDL_AudioSpec* spec = (SDL_AudioSpec *) malloc(sizeof(SDL_AudioSpec));
     spec->freq = 44100;
     spec->format = AUDIO_U8;
     spec->channels = 1;
     spec->samples = 4096;
     spec->callback = *feed;
-    spec->userdata = NULL;
+    spec->userdata = audio;
     return spec;
 }
 
 void
 dispose_audiospec(SDL_AudioSpec* spec)
 {
+    free(spec->userdata);
     free(spec);
 }
 

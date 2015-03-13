@@ -133,6 +133,8 @@ main(int argc, char** argv)
             if (mac.st) {
                 if (--mac.st == 0)
                     SDL_PauseAudio(1);
+                else
+                    SDL_PauseAudio(0);
             }
             render(&context, &mac);
             last_ticks = SDL_GetTicks();

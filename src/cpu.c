@@ -21,7 +21,6 @@
 #include "keyboard.h"
 #include <stdlib.h>
 #include <string.h>
-#include <SDL2/SDL.h>
 
 /**
  * Initializes to cero a machine data structure. This function should be
@@ -341,8 +340,6 @@ step_machine(struct machine_t* cpu)
                      * Will set ST register to the value on V[x].
                      */
                     cpu->st = cpu->v[x];
-                    if (cpu->st)
-                        SDL_PauseAudio(0);
                     break;
 
                 case 0x1E:
