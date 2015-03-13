@@ -19,6 +19,7 @@
 #include "cpu.h"
 #include "keyboard.h"
 #include "sdl.h"
+#include "sound.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,6 +65,7 @@ load_rom(const char* file, struct machine_t* machine)
 int
 main(int argc, char** argv)
 {
+    SDL_AudioSpec* spec;
     struct context_t context;
     struct machine_t mac;
     int must_quit = 0;
@@ -85,6 +87,10 @@ main(int argc, char** argv)
     // Init SDL engine
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         fprintf(stderr, "SDL Initialization Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    spec = init_audiospec();
+    if (SDL_OpenAudio(spec, NULL) < 0) {
         return 1;
     }
     if (init_context(&context) != 0) {
@@ -124,7 +130,10 @@ main(int argc, char** argv)
         // Render the display and update timers each frame.
         if (SDL_GetTicks() - last_ticks > (1000 / 60)) {
             if (mac.dt) mac.dt--;
-            if (mac.st) mac.st--;
+            if (mac.st) {
+                if (--mac.st == 0)
+                    SDL_PauseAudio(1);
+            }
             render(&context, &mac);
             last_ticks = SDL_GetTicks();
         }
@@ -132,6 +141,8 @@ main(int argc, char** argv)
 
     // Dispose SDL engine.
     destroy_context(&context);
+    SDL_CloseAudio();
+    dispose_audiospec(spec);
     SDL_Quit();
     return 0;
 }

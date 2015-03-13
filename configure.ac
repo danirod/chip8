@@ -9,6 +9,7 @@ AC_PROG_CC
 # Check libraries
 AC_CHECK_LIB([SDL2], [SDL_Init], [], 
              [AC_MSG_ERROR(["** ERROR: SDL2 is required to build this. ** "])])
+AC_CHECK_LIB([m], [sinf], [], [AC_MSG_ERROR(["** ERROR: Math library not found **"])])
 # Check header files
 
 # Check typedefs, structures and so
