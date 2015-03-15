@@ -26,6 +26,64 @@
 #include <time.h>
 #include <SDL2/SDL.h>
 
+char
+hex_to_bin(char hex)
+{
+    if (hex >= '0' && hex <= '9')
+        return hex - '0';
+    hex &= 0xDF;
+    if (hex >= 'A' && hex <= 'F')
+        return 10 + (hex - 'A');
+    return -1;
+}
+
+int
+load_hex(const char* file, struct machine_t* machine)
+{
+    FILE* fp = fopen(file, "rb");
+    if (fp == NULL) {
+        fprintf(stderr, "Cannot open ROM file.\n");
+        return 1;
+    }
+
+    // Use the fseek/ftell/fseek trick to retrieve file size.
+    fseek(fp, 0, SEEK_END);
+    int length = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    
+    // Create a temporal buffer where to store the data.
+    char* hexfile = malloc(length);
+    if (hexfile == NULL) {
+        return 1;
+    }
+
+    fread(hexfile, length, 1, fp);
+    fclose(fp);
+
+    int mempos = 0x200;
+    
+    if (length & 0x01) length--;
+    for (int i = 0; i < length; i += 2)
+    {
+        char hi = hexfile[i];
+        char lo = hexfile[i + 1];
+
+        char hi_b = hex_to_bin(hi);
+        char lo_b = hex_to_bin(lo);
+        if (hi_b == -1 || lo_b == -1) {
+            free(hexfile);
+            return 1;
+        }
+
+        machine->mem[mempos++] = hi_b << 4 | lo_b;   
+        if (mempos > 0xFFF)
+            break;
+    }
+
+    free(hexfile);
+    return 0;
+}
+
 /**
  * Load a ROM into a machine. This function will open a file and load its
  * contents into the memory from the provided machine data structure.
@@ -72,18 +130,40 @@ main(int argc, char** argv)
     int must_quit = 0;
     int last_ticks = 0;
     int cycles = 0;
+    
+/*
+ * chip8 PONG
+ * chip8 -h PONG.HEX
+ */
+
+    int load_type = 0; // 0 -> load_rom; 1 -> load_hex
+    char* file;
 
     // Read ROM file to load.
-    if (argc == 1) {
-        fprintf(stderr, "Usage: %s ROMFILE\n", argv[0]);
+    if (argc == 2) {
+        load_type = 0;
+        file = argv[1];
+    } else if (argc == 3 && memcmp(argv[1], "-h", 2) == 0) {
+        load_type = 1;
+        file = argv[2];
+    } else {
+        printf("Usage: %s [-h] ROMFILE\n", argv[0]);
+        printf("  -h: if set, will load as hex file.\n");
         return 1;
     }
-
+    
     // Init emulator
     srand(time(NULL));
     init_machine(&mac);
-    if (load_rom(argv[1], &mac))
-        return 1;
+    if (load_type == 0) {
+        if (load_rom(file, &mac)) {
+            return 1;
+        }
+    } else {
+        if (load_hex(file, &mac)) {
+            return 1;
+        }
+    }
 
     // Init SDL engine
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
