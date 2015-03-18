@@ -20,9 +20,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-static float tone_pos = 0;
-static float tone_inc = 2 * 3.14159 * 1000 / 44100;
-
 struct audiodata_t
 {
     float tone_pos;
