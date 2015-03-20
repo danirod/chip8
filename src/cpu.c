@@ -50,16 +50,16 @@ void
 step_machine(struct machine_t* cpu)
 {
     // Read next opcode from memory.
-    uint16_t opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
+    word opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
     cpu->pc = (cpu->pc + 2) & 0xFFF;
 
     // Extract bit nibbles from the opcode
-    uint16_t nnn = opcode & 0x0FFF;
-    uint8_t kk = opcode & 0xFF;
-    uint8_t n = opcode & 0xF;
-    uint8_t x = (opcode >> 8) & 0xF;
-    uint8_t y = (opcode >> 4) & 0xF;
-    uint8_t p = (opcode >> 12);
+    word nnn = opcode & 0x0FFF;
+    byte kk = opcode & 0xFF;
+    byte n = opcode & 0xF;
+    byte x = (opcode >> 8) & 0xF;
+    byte y = (opcode >> 4) & 0xF;
+    byte p = (opcode >> 12);
 
     // infernal switch case! (sorry for all the heart attacks here u_u)
     switch (p) {
@@ -276,7 +276,7 @@ step_machine(struct machine_t* cpu)
              */
             cpu->v[15] = 0;
             for (int j = 0; j < n; j++) {
-                uint8_t sprite = cpu->mem[cpu->i + j];
+                byte sprite = cpu->mem[cpu->i + j];
                 for (int i = 0; i < 8; i++) {
                     int px = (cpu->v[x] + i) & 63;
                     int py = (cpu->v[y] + j) & 31;
