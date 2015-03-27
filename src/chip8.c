@@ -22,10 +22,31 @@
 #include "sdl.h"
 #include "sound.h"
 
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <SDL2/SDL.h>
+
+/* Flag set by '--hex' */
+static int use_hexloader;
+
+/* getopt parameter structure. */
+static struct option long_options[] = {
+    { "hex", no_argument, &use_hexloader, 1},
+    { 0, 0, 0, 0 }
+};
+
+/**
+ * Print usage. In case you use bad arguments, this will be printed.
+ * @param binname how is the program named, usually argv[0].
+ */
+static void
+usage(const char* binname)
+{
+    printf("Usage: %s [--hex] FILE\n", binname);
+    printf("  --hex: if set, will load ROM in hexadecimal mode.\n");
+}
 
 int
 main(int argc, char** argv)
@@ -38,31 +59,39 @@ main(int argc, char** argv)
     int last_ticks = 0;
     int cycles = 0;
 
-/*
- * chip8 PONG
- * chip8 -h PONG.HEX
- */
-
-    int load_type = 0; // 0 -> load_rom; 1 -> load_hex
-    char* file;
-
-    // Read ROM file to load.
-    if (argc == 2) {
-        load_type = 0;
-        file = argv[1];
-    } else if (argc == 3 && memcmp(argv[1], "-h", 2) == 0) {
-        load_type = 1;
-        file = argv[2];
-    } else {
-        printf("Usage: %s [-h] ROMFILE\n", argv[0]);
-        printf("  -h: if set, will load as hex file.\n");
-        return 1;
+    /* Parse parameters */
+    int indexptr, c;
+    while ((c = getopt_long(argc, argv, "", long_options, &indexptr)) != -1)
+    {
+        switch (c)
+        {
+            case 0:
+                // Well, yup.
+                break;
+            default:
+                usage(argv[0]);
+                exit(1);
+        }
     }
+
+    /*
+     * We still may have arguments. getopt.h declares a global variable named
+     * optind which contains the index of the next parameter after flags were
+     * processed.
+     *
+     * Which is cool because we need to know the file name to open.
+     */
+    if (optind >= argc) {
+        usage(argv[0]);
+        exit(1);
+    }
+
+    char* file = argv[optind];
 
     // Init emulator
     srand(time(NULL));
     init_machine(&mac);
-    if (load_type == 0) {
+    if (use_hexloader == 0) {
         if (load_rom(file, &mac)) {
             return 1;
         }
