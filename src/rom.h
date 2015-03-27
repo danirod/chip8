@@ -16,12 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SOUND_H_
-#define SOUND_H_
+#ifndef ROM_H_
+#define ROM_H_
 
-#include <SDL2/SDL.h>
+#include "cpu.h"
 
-SDL_AudioSpec* init_audiospec(void);
-void dispose_audiospec(SDL_AudioSpec*);
+/**
+ * Load a hex file.
+ *
+ * @param file file path.
+ * @param machine data structure to load the HEX into.
+ */
+int load_hex(const char* file, struct machine_t* machine);
 
-#endif // SOUND_H_
+/**
+ * Load a ROM into a machine. This function will open a file and load its
+ * contents into the memory from the provided machine data structure.
+ * In compliance with the specification, ROM data will start at 0x200.
+ *
+ * @param file file path.
+ * @param machine machine data structure to load the ROM into.
+ */
+int load_rom(const char* file, struct machine_t* machine);
+
+#endif // ROM_H_

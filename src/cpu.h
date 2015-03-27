@@ -19,7 +19,7 @@
 #ifndef CPU_H_
 #define CPU_H_
 
-#include <stdint.h>
+#include "types.h"
 
 #define MEMSIZ 4096 // How much memory can handle the CHIP-8
 
@@ -29,15 +29,15 @@
  */
 struct machine_t
 {
-    uint8_t mem[MEMSIZ];        // Memory is allocated as a buffer
-    uint16_t pc;                // Program Counter
+    byte mem[MEMSIZ];         // Memory is allocated as a buffer
+    address pc;                // Program Counter
 
-    uint16_t stack[16];         // Stack can hold 16 16-bit values
-    uint16_t sp;                // Stack pointer
+    address stack[16];          // Stack can hold 16 16-bit values
+    char sp;                    // Stack Pointer: points to next free cell
 
-    uint8_t v[16];              // 16 general purpose registers
-    uint16_t i;                 // Special I register
-    uint8_t dt, st;             // Timers
+    byte v[16];              // 16 general purpose registers
+    address i;                 // Special I register
+    byte dt, st;             // Timers
 
     char screen[2048];          // Screen bitmap
     char wait_key;              // Key the CHIP-8 is idle waiting for.

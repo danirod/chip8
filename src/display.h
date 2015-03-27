@@ -23,6 +23,22 @@
 
 extern char hexcodes[];
 
+/**
+ * Expand a machine_t bitmap into a SDL 32-bit surface bitmap. This function
+ * will work provided some requirements are meet. Both arrays must be 2048
+ * positions long. Input array must be a char array where each position is
+ * either 0 or 1.
+ *
+ * Output array will be expanded in a format that is compatible with SDL
+ * surfaces. Each 0 on input array will be converted to a 0 on output array,
+ * which will result on no pixel being drawn on that position. Each 1 on
+ * input array will be converted to a -1 on output array, which being unsigned
+ * will result on every single bit of that position being 1 and thus
+ * plotting a white pixel.
+ *
+ * @param from input array where the struct machine_t bitmap is from.
+ * @param to output array where the pixels will be blitted.
+ */
 void expand_screen(char*, Uint32*);
 
 #endif // DISPLAY_H_
