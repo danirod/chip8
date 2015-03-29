@@ -1,7 +1,7 @@
 #include "rom.h"
 
 #include <stdio.h>
-
+#include <malloc.h> //new test
 char
 hex_to_bin(char hex)
 {
