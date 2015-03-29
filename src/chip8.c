@@ -29,11 +29,11 @@
 #include <SDL2/SDL.h>
 
 //temp by man init block
-#define CHIP8_AUTOR "(Autor: Dani email : )"        //temp man string temporal
+#define CHIP8_AUTOR         "(Autor: Dani email : )"         //temp man string temporal
 
-#define CHIP8_VERSION_STATE "(Unestable/Testing)\n"   //temp man string temporal
+#define CHIP8_VERSION_STATE "(Unestable/Testing)\n"          //temp man string temporal
 
-#define CHIP8_VERSION "\n(chip8)" CHIP8_VERSION_STATE  //temp man string temporal
+#define CHIP8_VERSION       "\n(chip8)" CHIP8_VERSION_STATE  //temp man string temporal
 
 #define CHIP8_USAGE "\
 usage:  %s [options] PATHFILE\\FILENAME\n\
