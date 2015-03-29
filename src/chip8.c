@@ -28,12 +28,37 @@
 #include <time.h>
 #include <SDL2/SDL.h>
 
+//temp by man init block
+#define CHIP8_AUTOR "(Autor: Dani email : )"        //temp man string temporal
+
+#define CHIP8_VERSION_STATE "(Unestable/Testing)\n"   //temp man string temporal
+
+#define CHIP8_VERSION "\n(chip8)" CHIP8_VERSION_STATE  //temp man string temporal
+
+#define CHIP8_USAGE "\
+usage:  %s [options] PATHFILE\\FILENAME\n\
+   \n\
+options:\n\
+  --hex:            if set, will load ROM in hexadecimal mode. \n\
+  --version         prints the current version                 \n\
+  --help            prints this help                           \n\
+\n"
+
+static void print_usage(const char* binname)
+{
+  fprintf(stdout, CHIP8_USAGE, binname);
+}
+
+//temp by man end block
+
 /* Flag set by '--hex' */
 static int use_hexloader;
 
 /* getopt parameter structure. */
 static struct option long_options[] = {
-    { "hex", no_argument, &use_hexloader, 1},
+    { "help",    no_argument, 0, 'h'},          //temp by man
+    { "version", no_argument, 0, 'v'},          //temp by man
+    { "hex",     no_argument, &use_hexloader, 1}, 
     { 0, 0, 0, 0 }
 };
 
@@ -61,16 +86,41 @@ main(int argc, char** argv)
 
     /* Parse parameters */
     int indexptr, c;
-    while ((c = getopt_long(argc, argv, "", long_options, &indexptr)) != -1)
+  
+    while ((c = getopt_long(argc, argv, "hv", long_options, &indexptr)) != -1)
     {
         switch (c)
-        {
+	{   //temp by man init Block
+	    case 'h':
+              //muestra la ayuda
+	      print_usage(argv[0]);
+	      break;
+
+	    case 'v':
+	      //muestra la version
+              fprintf (stdout, CHIP8_VERSION);
+	      break;
+
+            case '?':  //temp by man es para reconocer caracters extraños por ejemplo "¬"
+
+	      if (optopt == 'c')
+		fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+	      else if (isprint (optopt))
+		fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+	      else
+		fprintf (stderr,"Unknown option character `\\x%x'.\n", optopt);
+
+	      return 1;
+	    // temp by man end block
             case 0:
                 // Well, yup.
                 break;
+
             default:
-                usage(argv[0]);
-                exit(1);
+
+	      //fprintf (stdout, CHIP8_VERSION);
+	      //fprintf (stderr, "\nUsed\n %s --help\n\n", argv[0]);
+	      exit(1);
         }
     }
 
@@ -81,11 +131,14 @@ main(int argc, char** argv)
      *
      * Which is cool because we need to know the file name to open.
      */
+    
     if (optind >= argc) {
-        usage(argv[0]);
-        exit(1);
+      
+       fprintf (stdout, CHIP8_VERSION); 
+       fprintf (stderr, "\nUsed\n %s --help\n\n", argv[0]);
+       exit(1);
     }
-
+    
     char* file = argv[optind];
 
     // Init emulator
