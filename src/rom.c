@@ -1,6 +1,7 @@
 #include "rom.h"
 
 #include <stdio.h>
+#include <malloc.h> //temp for mandevone, because my complie, need
 
 char
 hex_to_bin(char hex)
