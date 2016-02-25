@@ -21,8 +21,6 @@
 
 #include <SDL2/SDL_types.h>
 
-extern char hexcodes[];
-
 /**
  * Expand a machine_t bitmap into a SDL 32-bit surface bitmap. This function
  * will work provided some requirements are meet. Both arrays must be 2048
