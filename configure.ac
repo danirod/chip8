@@ -20,5 +20,5 @@ AC_CHECK_LIB([m], [sinf], [], [AC_MSG_ERROR(["** ERROR: Math library not found *
 
 # Output
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile lib8/Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
