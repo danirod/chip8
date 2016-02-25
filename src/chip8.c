@@ -118,6 +118,8 @@ main(int argc, char** argv)
         return 1;
     }
 
+    mac.poller = &is_key_down;
+
     // Main loop.
     while (!must_quit) {
         // Check for events.

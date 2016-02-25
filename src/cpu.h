@@ -23,6 +23,8 @@
 
 #define MEMSIZ 4096 // How much memory can handle the CHIP-8
 
+typedef int (*keyboard_poller_t)(char);
+
 /**
  * Main data structure for holding information and state about processor.
  * Memory, stack, and register set is all defined here.
@@ -41,6 +43,7 @@ struct machine_t
 
     char screen[2048];          // Screen bitmap
     char wait_key;              // Key the CHIP-8 is idle waiting for.
+    keyboard_poller_t poller; // Keyboard poller
 };
 
 void init_machine(struct machine_t*);

@@ -18,7 +18,6 @@
 
 #include "cpu.h"
 #include "display.h"
-#include "keyboard.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -216,14 +215,14 @@ spC0xE_EX9E_EXA1 (struct machine_t* cpu, word opcode, word nnn,
        * EX9E: SKP X
        * Skip next instruction if key indicated in V[x] is down.
        */
-      if (is_key_down(cpu->v[x]))
+      if (cpu->poller(cpu->v[x]))
 	cpu->pc = (cpu->pc + 2) & 0xFFF;
     } else if (kk == 0xA1) {
       /*
        * EXA1: SKNP X
        * Skip next instruction if key indicated in V[x] is not down.
        */
-      if (!is_key_down(cpu->v[x]))
+      if (!cpu->poller(cpu->v[x]))
 	cpu->pc = (cpu->pc + 2) & 0xFFF;
     }
 }
