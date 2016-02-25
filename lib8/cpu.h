@@ -1,6 +1,6 @@
 /*
  * chip8 is a CHIP-8 emulator done in C
- * Copyright (C) 2015 Dani Rodríguez <danirod@outlook.com>
+ * Copyright (C) 2015-2016 Dani Rodríguez <danirod@outlook.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,39 @@
 #ifndef CPU_H_
 #define CPU_H_
 
-#include "types.h"
+#include <stdint.h>
 
 #define MEMSIZ 4096 // How much memory can handle the CHIP-8
+
+/**
+ * Type definition for a byte value. Bytes are unsigned 8-bit variables.
+ * They are widely used on the CHIP-8 since the memory and registers are
+ * byte-sized.
+ */
+typedef uint8_t byte;
+
+/**
+ * Type definition for a word value. Words are unsigned 16-bit variables.
+ * Words are used for decoding opcodes, since a opcode is 16-bit long.
+ */
+typedef uint16_t word;
+
+/**
+ * Type definition for refering to addresses. Addresses are 12-bit value.
+ * However there is no such type on C, thus a 16-bit value is used and only
+ * the 12 least significant bits are used.
+ *
+ * Address should be used whenever a memory address is being manipulated.
+ * They shouldn't be used on any other situation.
+ */
+typedef uint16_t address;
+
+/**
+ * This is the maximum amount of memory addressable by the machine.
+ * It should be used as a bitmask when overflows could possibly happen
+ * due to memory address management.
+ */
+#define ADDRESS_MASK 0xFFF
 
 typedef int (*keyboard_poller_t)(char);
 
