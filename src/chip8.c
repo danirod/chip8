@@ -19,9 +19,7 @@
 #include <cpu.h>
 
 #include "rom.h"
-#include "keyboard.h"
 #include "sdl.h"
-#include "sound.h"
 
 #include <getopt.h>
 #include <stdio.h>
