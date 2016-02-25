@@ -1,16 +1,7 @@
-AM_CFLAGS = --std=c99
+noinst_LIBRARIES = lib8.a
+lib8_a_SOURCES = cpu.c cpu.h
 
+AM_CFLAGS = --std=c99
 bin_PROGRAMS = chip8
-chip8_SOURCES = chip8.c \
-				cpu.c \
-				cpu.h \
-				display.c \
-				display.h \
-				keyboard.c \
-				keyboard.h \
-				sdl.c \
-				sdl.h \
-				sound.c \
-				sound.h \
-				rom.c \
-				rom.h
+chip8_SOURCES = chip8.c sdl.c sdl.h
+chip8_LDADD = lib8.a

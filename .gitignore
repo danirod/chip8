@@ -8,6 +8,7 @@
 /config.status
 /configure
 
+ar-lib
 /compile
 /depcomp
 /missing
@@ -17,6 +18,8 @@
 **/Makefile
 **/Makefile.in
 
+**/*.a
 **/*.o
 **/.deps/
+
 src/chip8
