@@ -17,6 +17,6 @@
 **/Makefile
 **/Makefile.in
 
-src/*.o
-src/.deps/
+**/*.o
+**/.deps/
 src/chip8
