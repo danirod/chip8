@@ -19,6 +19,7 @@
 #include <cpu.h>
 
 #include "sdl.h"
+#include "../config.h"
 
 #include <getopt.h>
 #include <stdio.h>
@@ -31,19 +32,20 @@ static int use_hexloader;
 
 /* getopt parameter structure. */
 static struct option long_options[] = {
-    { "hex", no_argument, &use_hexloader, 1},
+    { "help", no_argument, 0, 'h' },
+    { "version", no_argument, 0, 'v' },
+    { "hex", no_argument, &use_hexloader, 1 },
     { 0, 0, 0, 0 }
 };
 
 /**
  * Print usage. In case you use bad arguments, this will be printed.
- * @param binname how is the program named, usually argv[0].
+ * @param name how is the program named, usually argv[0].
  */
 static void
-usage(const char* binname)
+usage(const char* name)
 {
-    printf("Usage: %s [--hex] FILE\n", binname);
-    printf("  --hex: if set, will load ROM in hexadecimal mode.\n");
+    printf("Usage: %s [-h | --help] [-v | --version] [--hex] <file>\n", name);
 }
 
 char
@@ -160,28 +162,33 @@ main(int argc, char** argv)
 
     /* Parse parameters */
     int indexptr, c;
-    while ((c = getopt_long(argc, argv, "", long_options, &indexptr)) != -1)
-    {
-        switch (c)
-        {
+    while ((c = getopt_long(argc, argv, "hv", long_options, &indexptr)) != -1) {
+        switch (c) {
+            case 'h':
+                /* Print help message. */
+                usage(argv[0]);
+                exit(0);
+            case 'v':
+                /* Print version information. */
+                printf("%s\n", PACKAGE_STRING);
+                exit(0);
+                break;
             case 0:
-                // Well, yup.
+                /* A long option is being processed, probably --hex. */
                 break;
             default:
-                usage(argv[0]);
+                /* Wrong argument. */
                 exit(1);
         }
     }
 
     /*
-     * We still may have arguments. getopt.h declares a global variable named
-     * optind which contains the index of the next parameter after flags were
-     * processed.
-     *
-     * Which is cool because we need to know the file name to open.
+     * optind should have the index of next parameter in argv. It should be
+     * the name of the file to read. Therefore, should complain if file is not
+     * given.
      */
     if (optind >= argc) {
-        usage(argv[0]);
+        fprintf(stderr, "%s: file not given. '%1$s -h' for help.\n", argv[0]);
         exit(1);
     }
 
