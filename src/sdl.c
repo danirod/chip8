@@ -1,6 +1,6 @@
 /*
  * chip8 is a CHIP-8 emulator done in C
- * Copyright (C) 2015 Dani Rodríguez <danirod@outlook.com>
+ * Copyright (C) 2015-2016 Dani Rodríguez <danirod@outlook.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,35 @@
 
 
 #include "sdl.h"
-#include "display.h"
+
+#include <stdlib.h>
+#include <math.h>
+
+/**
+ * This array maps a SDL scancode to the CHIP-8 key that serves as index
+ * for the array. For instance, pressing key keys[5] on your keyboard will
+ * make your CHIP-8 understand as if you pressed the [5] key. Remember that
+ * CHIP-8 uses a 16-key keyboard with keys labeled 0..F.
+ */
+char keys[] = {
+    SDL_SCANCODE_X, // 0
+    SDL_SCANCODE_1, // 1
+    SDL_SCANCODE_2, // 2
+    SDL_SCANCODE_3, // 3
+    SDL_SCANCODE_Q, // 4
+    SDL_SCANCODE_W, // 5
+    SDL_SCANCODE_E, // 6
+    SDL_SCANCODE_A, // 7
+    SDL_SCANCODE_S, // 8
+    SDL_SCANCODE_D, // 9
+    SDL_SCANCODE_Z, // A
+    SDL_SCANCODE_C, // B
+    SDL_SCANCODE_4, // C
+    SDL_SCANCODE_R, // D
+    SDL_SCANCODE_F, // E
+    SDL_SCANCODE_V  // F
+};
+
 
 int
 init_context(struct context_t* context)
@@ -102,4 +130,71 @@ render(struct context_t* context, struct machine_t* machine)
     SDL_RenderClear(context->renderer);
     SDL_RenderCopy(context->renderer, context->texture, NULL, NULL);
     SDL_RenderPresent(context->renderer);
+}
+
+/**
+ * Checks if a given key is pressed. This function acceps a CHIP-8 key in
+ * range 0-F. It will check using SDL if the PC keyboard mapped to that
+ * CHIP-8 key is acutally being pressed or not.
+ *
+ * @param key CHIP-8 key to be checked.
+ * @return 0 if that key is not down; != 0 if that key IS down.
+ */
+int
+is_key_down(char key)
+{
+    const Uint8* sdl_keys; // SDL key array information
+    Uint8 real_key; // Mapped SDL scancode for the given key
+    if (key < 0 || key > 15) return 0; // check those bounds.
+
+    sdl_keys = SDL_GetKeyboardState(NULL);
+    real_key = keys[(int) key];
+    return sdl_keys[real_key];
+}
+
+void
+expand_screen(char* from, Uint32* to)
+{
+    for (int i = 0; i < 2048; i++)
+        to[i] = ( from[i]) ? -1 : 0;
+}
+
+struct audiodata_t
+{
+    float tone_pos;
+    float tone_inc;
+};
+
+static void
+feed(void* udata, Uint8* stream, int len)
+{
+    struct audiodata_t* audio = (struct audiodata_t *) udata;
+    for (int i = 0; i < len; i++) {
+        stream[i] = sinf(audio->tone_pos) + 127;
+        audio->tone_pos += audio->tone_inc;
+    }
+}
+
+SDL_AudioSpec*
+init_audiospec(void)
+{
+    struct audiodata_t* audio = malloc(sizeof(struct audiodata_t));
+    audio->tone_pos = 0;
+    audio->tone_inc = 2 * 3.14159 * 1000 / 44100;
+
+    SDL_AudioSpec* spec = (SDL_AudioSpec *) malloc(sizeof(SDL_AudioSpec));
+    spec->freq = 44100;
+    spec->format = AUDIO_U8;
+    spec->channels = 1;
+    spec->samples = 4096;
+    spec->callback = *feed;
+    spec->userdata = audio;
+    return spec;
+}
+
+void
+dispose_audiospec(SDL_AudioSpec* spec)
+{
+    free(spec->userdata);
+    free(spec);
 }
