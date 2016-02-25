@@ -1,2 +1,2 @@
-SUBDIRS = src
+SUBDIRS = lib8 . src
 

@@ -4,10 +4,12 @@ AC_INIT([chip8], [0.1.1], [danirod@outlook.com])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 # Check programs
+AM_PROG_AR
 AC_PROG_CC
+AC_PROG_RANLIB
 
 # Check libraries
-AC_CHECK_LIB([SDL2], [SDL_Init], [], 
+AC_CHECK_LIB([SDL2], [SDL_Init], [],
              [AC_MSG_ERROR(["** ERROR: SDL2 is required to build this. ** "])])
 AC_CHECK_LIB([m], [sinf], [], [AC_MSG_ERROR(["** ERROR: Math library not found **"])])
 # Check header files
@@ -18,6 +20,5 @@ AC_CHECK_LIB([m], [sinf], [], [AC_MSG_ERROR(["** ERROR: Math library not found *
 
 # Output
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile lib8/Makefile src/Makefile])
 AC_OUTPUT
-
