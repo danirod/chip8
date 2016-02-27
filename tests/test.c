@@ -18,25 +18,13 @@
 
 #include <check.h>
 
-START_TEST(always_passes)
-{
-    ck_assert_int_eq(1, 1);
-}
-END_TEST
-
-Suite*
-test_suite()
-{
-    Suite* s = suite_create("test");
-    TCase *tcase_main = tcase_create("test");
-    tcase_add_test(tcase_main, always_passes);
-    return s;
-}
+extern Suite*
+create_opcodes_suite();
 
 int main(int argc, char** argv)
 {
-    SRunner* runner = srunner_create(test_suite());
-    srunner_run_all(runner, CK_NORMAL);
+    SRunner* runner = srunner_create(create_opcodes_suite());
+    srunner_run_all(runner, CK_VERBOSE);
     int failed = srunner_ntests_failed(runner);
     srunner_free(runner);
     return (failed == 0) ? 0 : 1;

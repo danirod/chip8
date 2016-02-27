@@ -8,12 +8,13 @@
 /config.status
 /configure
 
-ar-lib
+/ar-lib
 /compile
 /depcomp
 /missing
 /install-sh
 /stamp-h1
+/test-driver
 
 **/Makefile
 **/Makefile.in
