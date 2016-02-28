@@ -352,7 +352,7 @@ tcase_addxy()
 {
     TCase* tcase = tcase_create("ADDXY");
     tcase_add_test(tcase, test_addxy_nocarry);
-    //tcase_add_test(tcase, test_addxy_carry);
+    tcase_add_test(tcase, test_addxy_carry);
     return tcase;
 }
 
@@ -786,14 +786,14 @@ create_opcodes_suite()
     suite_add_tcase(suite, tcase_subxy());
     suite_add_tcase(suite, tcase_shr());
     suite_add_tcase(suite, tcase_subnxy());
-    // suite_add_tcase(suite, tcase_shl());
+    suite_add_tcase(suite, tcase_shl());
     suite_add_tcase(suite, tcase_snexy());
     suite_add_tcase(suite, tcase_ldi());
     suite_add_tcase(suite, tcase_jp());
     suite_add_tcase(suite, tcase_skp());
     suite_add_tcase(suite, tcase_sknp());
     suite_add_tcase(suite, tcase_lddt());
-    // suite_add_tcase(suite, tcase_ldk());
+    suite_add_tcase(suite, tcase_ldk());
     suite_add_tcase(suite, tcase_ldst());
     suite_add_tcase(suite, tcase_addi());
     suite_add_tcase(suite, tcase_ldf());
