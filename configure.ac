@@ -17,8 +17,9 @@ AC_CHECK_LIB([m], [sinf], [], [AC_MSG_ERROR(["** ERROR: Math library not found *
 # Check typedefs, structures and so
 
 # Check library functions
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.6])
 
 # Output
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 AC_OUTPUT
