@@ -549,6 +549,222 @@ tcase_jp()
     return tcase;
 }
 
+static int
+mock_poller(char key)
+{
+    return key == 2;
+}
+
+START_TEST(test_skp)
+{
+    cpu.poller = &mock_poller;
+    put_opcode(0xE09E, 0);
+    for (char key = 0; key < 16; key++) {
+        cpu.pc = 0;
+        cpu.v[0] = key;
+        step_machine(&cpu);
+        if (key == 2) {
+            ck_assert_int_eq(4, cpu.pc);
+        } else {
+            ck_assert_int_eq(2, cpu.pc);
+        }
+    }
+}
+END_TEST
+
+static TCase*
+tcase_skp()
+{
+    TCase* tcase = tcase_create("SKP");
+    tcase_add_test(tcase, test_skp);
+    return tcase;
+}
+
+START_TEST(test_sknp)
+{
+    cpu.poller = &mock_poller;
+    put_opcode(0xE0A1, 0);
+    for (char key = 0; key < 16; key++) {
+        cpu.pc = 0;
+        cpu.v[0] = key;
+        step_machine(&cpu);
+        if (key != 2) {
+            ck_assert_int_eq(4, cpu.pc);
+        } else {
+            ck_assert_int_eq(2, cpu.pc);
+        }
+    }
+}
+END_TEST
+
+static TCase*
+tcase_sknp()
+{
+    TCase* tcase = tcase_create("SKNP");
+    tcase_add_test(tcase, test_sknp);
+    return tcase;
+}
+
+START_TEST(test_lddt_in)
+{
+    cpu.dt = 0x55;
+    cpu.v[0] = 0;
+    put_opcode(0xF007, 0);
+    step_machine(&cpu);
+    ck_assert_int_eq(0x55, cpu.v[0]);
+}
+END_TEST
+
+START_TEST(test_lddt_out)
+{
+    put_opcode(0xF015, 0);
+    cpu.v[0] = 0x55;
+    cpu.dt = 0;
+    step_machine(&cpu);
+    ck_assert_int_eq(0x55, cpu.dt);
+}
+END_TEST
+
+static TCase*
+tcase_lddt()
+{
+    TCase* tcase = tcase_create("LDDT");
+    tcase_add_test(tcase, test_lddt_out);
+    tcase_add_test(tcase, test_lddt_in);
+    return tcase;
+}
+
+START_TEST(test_ldk)
+{
+    cpu.poller = &mock_poller;
+    cpu.v[0] = 0xFF;
+    put_opcode(0xF00A, 0);
+    step_machine(&cpu);
+    ck_assert_int_eq(2, cpu.v[0]);
+}
+END_TEST
+
+static TCase*
+tcase_ldk()
+{
+    TCase* tcase = tcase_create("LDK");
+    tcase_add_test(tcase, test_ldk);
+    return tcase;
+}
+
+START_TEST(test_ldst)
+{
+    put_opcode(0xF018, 0);
+    cpu.v[0] = 0x55;
+    cpu.st = 0;
+    step_machine(&cpu);
+    ck_assert_int_eq(0x55, cpu.st);
+}
+END_TEST
+
+static TCase*
+tcase_ldst()
+{
+    TCase* tcase = tcase_create("LDST");
+    tcase_add_test(tcase, test_ldst);
+    return tcase;
+}
+
+START_TEST(test_addi)
+{
+    put_opcode(0xF01E, 0);
+    cpu.v[0] = 0x30;
+    cpu.i = 0x400;
+    step_machine(&cpu);
+    ck_assert_int_eq(0x430, cpu.i);
+}
+END_TEST
+
+static TCase*
+tcase_addi()
+{
+    TCase* tcase = tcase_create("ADDI");
+    tcase_add_test(tcase, test_addi);
+    return tcase;
+}
+
+START_TEST(test_ldf)
+{
+    cpu.v[0] = 3;
+    cpu.i = 0;
+    put_opcode(0xF029, 0);
+    step_machine(&cpu);
+    ck_assert_int_eq(0x50 + 15, cpu.i);
+}
+END_TEST
+
+static TCase*
+tcase_ldf()
+{
+    TCase* tcase = tcase_create("LDF");
+    tcase_add_test(tcase, test_ldf);
+    return tcase;
+}
+
+START_TEST(test_ldb)
+{
+    cpu.v[0] = 123;
+    cpu.i = 0x400;
+    put_opcode(0xF033, 0);
+    step_machine(&cpu);
+    ck_assert_int_eq(1, cpu.mem[0x400]);
+    ck_assert_int_eq(2, cpu.mem[0x401]);
+    ck_assert_int_eq(3, cpu.mem[0x402]);
+}
+END_TEST
+
+static TCase*
+tcase_ldb()
+{
+    TCase* tcase = tcase_create("LDB");
+    tcase_add_test(tcase, test_ldb);
+    return tcase;
+}
+
+START_TEST(test_ldix_out)
+{
+    for (int i = 0; i < 16; i++) {
+        cpu.v[i] = 0x80 + i;
+        cpu.mem[0x400 + i] = 0xFF;
+    }
+    put_opcode(0xFF55, 0);
+    cpu.i = 0x400;
+    step_machine(&cpu);
+    for (int i = 0; i < 16; i++) {
+        ck_assert_int_eq(0x80 + i, cpu.mem[0x400 + i]);
+    }
+}
+END_TEST
+
+START_TEST(test_ldix_in)
+{
+    for (int i = 0; i < 16; i++) {
+        cpu.mem[0x400 + i] = 0x80 + i;
+        cpu.v[i] = 0xFF;
+    }
+    put_opcode(0xFF65, 0);
+    cpu.i = 0x400;
+    step_machine(&cpu);
+    for (int i = 0; i < 16; i++) {
+        ck_assert_int_eq(0x80 + i, cpu.v[i]);
+    }
+}
+END_TEST
+
+static TCase*
+tcase_ldix()
+{
+    TCase* tcase = tcase_create("LDIX");
+    tcase_add_test(tcase, test_ldix_in);
+    tcase_add_test(tcase, test_ldix_out);
+    return tcase;
+}
+
 Suite*
 create_opcodes_suite()
 {
@@ -574,5 +790,14 @@ create_opcodes_suite()
     suite_add_tcase(suite, tcase_snexy());
     suite_add_tcase(suite, tcase_ldi());
     suite_add_tcase(suite, tcase_jp());
+    suite_add_tcase(suite, tcase_skp());
+    suite_add_tcase(suite, tcase_sknp());
+    suite_add_tcase(suite, tcase_lddt());
+    // suite_add_tcase(suite, tcase_ldk());
+    suite_add_tcase(suite, tcase_ldst());
+    suite_add_tcase(suite, tcase_addi());
+    suite_add_tcase(suite, tcase_ldf());
+    suite_add_tcase(suite, tcase_ldb());
+    suite_add_tcase(suite, tcase_ldix());
     return suite;
 }
