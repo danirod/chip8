@@ -9,3 +9,4 @@ before_install:
 - sudo apt-get install -y libsdl2-dev check
 before_script: ./bootstrap
 script: "./configure && make && make check"
+after_failure: "cat tests/test-suite.log"
