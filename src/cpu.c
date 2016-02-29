@@ -45,121 +45,6 @@ static char hexcodes[] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-/* Fxxx Opcodes. */
-
-static void
-skkC0x07_FX07 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX07: LD X, DT
-       * Set V[x] to whatever is on DT register.
-       */
-      cpu->v[x] = cpu->dt;
-}
-
-static void
-skkC0x0A_FX0A (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX0A: LD X, K
-       * Halt the machine until a key is pressed, then save
-       * the key number pressed in register V[x].
-       */
-      cpu->wait_key = x;
-}
-
-static void
-skkC0x15_FX15 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX15: LD DT, X
-       * Will set DT register to the value on V[x].
-       */
-      cpu->dt = cpu->v[x];
-}
-
-static void
-skkC0x18_FX18 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-   /*
-    * FX18: LD ST, X
-    * Will set ST register to the value on V[x].
-    */
-  cpu->st = cpu->v[x];
-}
-
-static void
-skkC0x1E_FX1E (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX1E: ADD I, X
-       * Add V[x] to whatever is on I register.
-       */
-      cpu->i += cpu->v[x];
-}
- 
-static void
-skkC0x29_FX29 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX29: LD F, X
-       * Will set I to the address location where the sprite
-       * for drawing the number in V[x] is.
-       */
-      cpu->i = 0x50 + (cpu->v[x] & 0xF) * 5;
-}
-
-static void
-skkC0x33_FX33 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX33: LD B, X
-       * Will set the value in memory address I, I+1 and I+2
-       * so that they represent the memory addresses for both
-       * hundreds, tens and ones for the number in V[x]
-       * register encoded in BCD.
-       */
-      cpu->mem[cpu->i + 2] = cpu->v[x] % 10;
-      cpu->mem[cpu->i + 1] = (cpu->v[x] / 10) % 10;
-      cpu->mem[cpu->i] = (cpu->v[x] / 100);
-}
-
-static void
-skkC0x55_FX55 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX55: LD [I], X
-       * Will save in memory registers from V[0] to V[x] in
-       * memory addresses I to I+x. V[x] is included in what
-       * gets saved.
-       */
-      for (int reg = 0; reg <= x; reg++)
-	cpu->mem[cpu->i + reg] = cpu->v[reg];
-}
-
-static void
-skkC0x65_FX65 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX65: LD X, [I]
-       * Will read from memory addresses I to I+x and store
-       * each value in registers V[0] to V[x]. V[x] is included
-       * in what is read.
-       */
-      for (int reg = 0; reg <= x; reg++)
-	cpu->v[reg] = cpu->mem[cpu->i + reg];
-}
-
-procesarInstruccionesOpcodes ptrFunInstrucciones_kk[9] = {&skkC0x07_FX07,
-                                            &skkC0x0A_FX0A,
-                                            &skkC0x15_FX15,
-                                            &skkC0x18_FX18,
-                                            &skkC0x1E_FX1E,
-                                            &skkC0x29_FX29,
-                                            &skkC0x33_FX33,
-                                            &skkC0x55_FX55,
-					    &skkC0x65_FX65};
-
 static void
 nibble_0(struct machine_t* cpu, word opcode, word nnn,
         byte kk, byte n, byte x, byte y, byte p)
@@ -361,40 +246,46 @@ nibble_F(struct machine_t* cpu, word opcode, word nnn,
 {
     switch (kk) {
     case 0x07:
-        instruccion_kk = ptrFunInstrucciones_kk[0];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX07: LD - Set V[X] to DT. */
+        cpu->v[x] = cpu->dt;
         break;
     case 0x0A:
-        instruccion_kk = ptrFunInstrucciones_kk[1];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX0A: LD - Wait for a keypress, then store the key in V[X]. */
+        cpu->wait_key = x;
         break;
     case 0x15:
-        instruccion_kk = ptrFunInstrucciones_kk[2];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX15: LD - Set DT to V[X]. */
+        cpu->dt = cpu->v[x];
         break;
     case 0x18:
-        instruccion_kk = ptrFunInstrucciones_kk[3];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX18: LD - Set ST to V[X]. */
+        cpu->st = cpu->v[x];
         break;
     case 0x1E:
-        instruccion_kk = ptrFunInstrucciones_kk[4];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX1E: ADD - Add V[X] to I. */
+        cpu->i += cpu->v[x];
         break;
     case 0x29:
-        instruccion_kk = ptrFunInstrucciones_kk[5];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX29: LD - Set I to the address location for the sprite. */
+        cpu->i = 0x50 + (cpu->v[x] & 0xF) * 5;
         break;
     case 0x33:
-        instruccion_kk = ptrFunInstrucciones_kk[6];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX33: Represent V[X] as BCD in I, I+1, I+2. */
+        cpu->mem[cpu->i + 2] = cpu->v[x] % 10;
+        cpu->mem[cpu->i + 1] = (cpu->v[x] / 10) % 10;
+        cpu->mem[cpu->i] = cpu->v[x] / 100;
         break;
     case 0x55:
-        instruccion_kk = ptrFunInstrucciones_kk[7];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX55: LD - Save registers V[0] to V[x] starting at I. */
+        for (int reg = 0; reg <= x; reg++) {
+            cpu->mem[cpu->i + reg] = cpu->v[reg];
+        }
         break;
     case 0x65:
-        instruccion_kk = ptrFunInstrucciones_kk[8];
-        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        /* FX65: LD - Load registers V[0] to V[x] from I. */
+        for (int reg = 0; reg <= x; reg++) {
+            cpu->v[reg] = cpu->mem[cpu->i + reg];
+        }
         break;
     }
 }
