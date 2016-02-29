@@ -62,13 +62,6 @@ init_machine(struct machine_t* machine)
     machine->wait_key = -1;
 }
 
-/**
- * Step the machine. This method will fetch an instruction from memory
- * and execute it. After invoking this method, the state of the provided
- * machine is modified according to the executed instruction.
- *
- * @param cpu reference pointer to the machine to step
- */
 
 void 
 spC0_00E0_00EE (struct machine_t* cpu, word opcode, word nnn,
@@ -568,6 +561,13 @@ spC8_sn (struct machine_t* cpu, word opcode, word nnn,
   }
 }
 
+/**
+ * Step the machine. This method will fetch an instruction from memory
+ * and execute it. After invoking this method, the state of the provided
+ * machine is modified according to the executed instruction.
+ *
+ * @param cpu reference pointer to the machine to step
+ */
 void
 step_machine(struct machine_t* cpu)
 {
