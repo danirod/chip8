@@ -278,280 +278,214 @@ procesarInstruccionesOpcodes ptrFunInstrucciones_n[9] = {&snC0_8XY0,
 					   &snC7_8XY7,
 					   &snC0xE_8X0E};
 
-
 static void
-spC0_00E0_00EE (struct machine_t* cpu, word opcode, word nnn,
-		byte kk, byte n, byte x, byte y, byte p){
+nibble_0(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
     if (opcode == 0x00e0) {
-      /*
-       * 00E0: CLS
-       * Clear the screen
-       */
-      memset(cpu->screen, 0, 2048);
+        /* 00E0: CLS - Clear the screen. */
+        memset(cpu->screen, 0, 2048);
     } else if (opcode == 0x00ee) {
-      /*
-       * 00EE: RET
-       * Return from subroutine.
-       */
-      if (cpu->sp > 0)
-	cpu->pc = cpu->stack[--cpu->sp];
+        /* 00EE: RET - Return from subroutine. */
+        if (cpu->sp > 0)
+        cpu->pc = cpu->stack[--cpu->sp];
+        /* TODO: Should throw an error on stack underflow. */
     }
 }
 
 static void
-spC1_1NNN (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
- /*
-     * 1NNN: JMP NNN
-     * Jump to address location NNN.
-     */
+nibble_1(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* 1NNN: JMP - Jump to address location NNN. */
     cpu->pc = nnn;
 }
 
 static void
-spC2_2NNN (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-  /*
-     * 2NNN: CALL NNN
-     * Call subroutine starting at address location NNN.
-     */
-    if (cpu->sp < 16)
-      cpu->stack[cpu->sp++] = cpu->pc;
-    cpu->pc = nnn;
+nibble_2(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* 2NNN: CALL - Call subroutine starting at address NNN. */
+    if (cpu->sp < 16) {
+        cpu->stack[cpu->sp++] = cpu->pc;
+        cpu->pc = nnn;
+    }
+    /* TODO: Should throw an error on stack overflow. */
 }
 
 static void
-spC3_3XKK (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * 3XKK: SE X, KK
-     * Skip next instruction if V[X] == KK
-     */
+nibble_3(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* 3XKK: SE: Skip next instruction if V[X] = KK. */
     if (cpu->v[x] == kk)
-      cpu->pc = (cpu->pc + 2) & 0xfff;
+        cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
 static void
-spC4_4XKK (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * 4XKK: SNE X, KK
-     * SKip next instruction if V[X] != KK
-     */
+nibble_4(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* 4XKK: SNE - Skip next instruction if V[X] != KK. */
     if (cpu->v[x] != kk)
-      cpu->pc = (cpu->pc + 2) & 0xfff;
+        cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
 static void
-spC5_5XY0 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * 5XY0: SE X, Y
-     * Skip next instruction if V[X] == V[Y].
-     */
+nibble_5(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* 5XY0: SE - Skip next instruction if V[X] == V[Y]. */
     if (cpu->v[x] == cpu->v[y])
-      cpu->pc = (cpu->pc + 2) & 0xfff;
+        cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
 static void
-spC6_6XKK (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * 6XKK: LD X, KK
-     * Set V[x] = KK.
-     */
+nibble_6(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* 6XKK: LD - Set V[X] = KK. */
     cpu->v[x] = kk;
 }
 
 static void
-spC7_7XKK (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * 7XKK: ADD X, KK
-     * Add KK to V[X].
-     */
+nibble_7(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* 7XKK: ADD - Add KK to V[X]. */
     cpu->v[x] = (cpu->v[x] + kk) & 0xff;
 }
 
 static void
-spC9_9XY0 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * 9XY0: SNE X, Y
-     * Skip next instruction if V[x] != V[y].
-     */
-    if (cpu->v[x] != cpu->v[y])
-      cpu->pc = (cpu->pc + 2) & 0xFFF;
-} 
+nibble_8(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    if (!(n < 0 || n > 7)) {
+        instruccion_n = ptrFunInstrucciones_n[n];
+        instruccion_n(cpu, opcode, nnn, kk, n, x, y, p);
+    } else if (n == 0xE) {
+        instruccion_n = ptrFunInstrucciones_n[n];
+        instruccion_n(cpu, opcode, nnn, kk, n, x, y, p);
+    }
+}
 
 static void
-spC0xA_ANNN (struct machine_t* cpu, word opcode, word nnn,
-	     byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * ANNN: LD I, NNN
-     * Will set I register to NNN.
-             */
+nibble_9(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* 9XY0: SNE - Skip next instruction if V[X] != V[Y]. */
+    if (cpu->v[x] != cpu->v[y])
+        cpu->pc = (cpu->pc + 2) & 0xFFF;
+}
+
+static void
+nibble_A(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* ANNN: LD - Set I to NNN. */
     cpu->i = nnn;
 }
 
 static void
-spC0xB_BNNN (struct machine_t* cpu, word opcode, word nnn,
-	     byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * BNNN: JP V0, NNN
-     * Will jump to memory address (V[0] + NNN).
-     */
+nibble_B(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* BNNN: JP - Jump to memory address (V[0] + NNN). */
     cpu->pc = (cpu->v[0] + nnn) & 0xFFF;
 }
 
 static void
-spC0xC_CXKK (struct machine_t* cpu, word opcode, word nnn,
-	     byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * CXKK: RND X, KK
-     * Will get a random value, then bitmasking it using KK as an
-     * AND mask, and then save that random value to V[x].
-     */
+nibble_C(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* CXKK: RND - Put a random value, bitmasked against KK in V[X]. */
     cpu->v[x] = rand() & kk;
 }
 
 static void
-spC0xD_DXYN (struct machine_t* cpu, word opcode, word nnn,
-	     byte kk, byte n, byte x, byte y, byte p){
-    /*
-     * DXYN: DRW X, Y, N
-     * Draw a sprite on screen. The sprite will be drawn on screen
-     * position described by V[x],V[y]. Sprites are 8 pixels wide
-     * and the number of rows to draw is indicated through N.
-     * The sprite to draw is pointed using I register.
-     */
+nibble_D(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    /* DXYN: DRW - Draw a sprite on the screen at location V[X], V[Y]. */
     cpu->v[15] = 0;
     for (int j = 0; j < n; j++) {
-      byte sprite = cpu->mem[cpu->i + j];
-      for (int i = 0; i < 8; i++) {
-	int px = (cpu->v[x] + i) & 63;
-	int py = (cpu->v[y] + j) & 31;
-	int pos = 64 * py + px;
-	int pixel = (sprite & (1 << (7-i))) != 0;
-
-	cpu->v[15] |= (cpu->screen[pos] & pixel);
-	cpu->screen[pos] ^= pixel;
-      }
+        byte sprite = cpu->mem[cpu->i + j];
+        for (int i = 0; i < 8; i++) {
+            int px = (cpu->v[x] + i) & 63;
+            int py = (cpu->v[y] + j) & 31;
+            int pos = 64 * py + px;
+            int pixel = (sprite & (1 << (7-i))) != 0;
+            cpu->v[15] |= (cpu->screen[pos] & pixel);
+            cpu->screen[pos] ^= pixel;
+        }
     }
-} 
+}
 
 static void
-spC0xE_EX9E_EXA1 (struct machine_t* cpu, word opcode, word nnn,
-		  byte kk, byte n, byte x, byte y, byte p){
+nibble_E(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
     if (kk == 0x9E) {
-      /*
-       * EX9E: SKP X
-       * Skip next instruction if key indicated in V[x] is down.
-       */
-      if (cpu->poller(cpu->v[x]))
-	cpu->pc = (cpu->pc + 2) & 0xFFF;
+        /* EX9E: SKP - Skip next instruction if key V[X] is down. */
+        if (cpu->poller(cpu->v[x]))
+            cpu->pc = (cpu->pc + 2) & 0xFFF;
     } else if (kk == 0xA1) {
-      /*
-       * EXA1: SKNP X
-       * Skip next instruction if key indicated in V[x] is not down.
-       */
-      if (!cpu->poller(cpu->v[x]))
-	cpu->pc = (cpu->pc + 2) & 0xFFF;
+        /* EXA1: SKNP - Skip next instruction if key V[X] is not down. */
+        if (!cpu->poller(cpu->v[x]))
+            cpu->pc = (cpu->pc + 2) & 0xFFF;
     }
 }
 
-
-
-
-
-
 static void
-spC0xF_skk (struct machine_t* cpu, word opcode, word nnn,
-	    byte kk, byte n, byte x, byte y, byte p){
-    
-  switch (kk) {
-  case 0x07:
-    instruccion_kk = ptrFunInstrucciones_kk[0];
-    instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
- 
-    break;
-
-  case 0x0A:
-      instruccion_kk = ptrFunInstrucciones_kk[1];
-      instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
- 
-      break;
-
+nibble_F(struct machine_t* cpu, word opcode, word nnn,
+        byte kk, byte n, byte x, byte y, byte p)
+{
+    switch (kk) {
+    case 0x07:
+        instruccion_kk = ptrFunInstrucciones_kk[0];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
+    case 0x0A:
+        instruccion_kk = ptrFunInstrucciones_kk[1];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
     case 0x15:
- 
-     instruccion_kk = ptrFunInstrucciones_kk[2];
-     instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
-      break;
-
+        instruccion_kk = ptrFunInstrucciones_kk[2];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
     case 0x18:
- 
-     instruccion_kk = ptrFunInstrucciones_kk[3];
-     instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
-      break;
-
+        instruccion_kk = ptrFunInstrucciones_kk[3];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
     case 0x1E:
- 
-     instruccion_kk = ptrFunInstrucciones_kk[4];
-     instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
-   break;
-
+        instruccion_kk = ptrFunInstrucciones_kk[4];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
     case 0x29:
-      instruccion_kk = ptrFunInstrucciones_kk[5];
-      instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
-    break;
-
+        instruccion_kk = ptrFunInstrucciones_kk[5];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
     case 0x33:
-      instruccion_kk = ptrFunInstrucciones_kk[6];
-      instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
-    break;
-
+        instruccion_kk = ptrFunInstrucciones_kk[6];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
     case 0x55:
-     instruccion_kk = ptrFunInstrucciones_kk[7];
-     instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
-  
-      break;
-
+        instruccion_kk = ptrFunInstrucciones_kk[7];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
     case 0x65:
-     instruccion_kk = ptrFunInstrucciones_kk[8];
-     instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
- 
-      break;
+        instruccion_kk = ptrFunInstrucciones_kk[8];
+        instruccion_kk(cpu, opcode, nnn, kk, n, x, y, p);
+        break;
     }
 }
 
-static void
-spC8_sn (struct machine_t* cpu, word opcode, word nnn,
-	 byte kk, byte n, byte x, byte y, byte p){
-  if (!(n < 0 || n > 7)){
-   instruccion_n = ptrFunInstrucciones_n[n];
-   instruccion_n(cpu, opcode, nnn, kk, n, x, y, p);
-  }else if (n == 0xE){
-   instruccion_n = ptrFunInstrucciones_n[n];
-   instruccion_n(cpu, opcode, nnn, kk, n, x, y, p);
-  }
-}
-
-procesarInstruccionesOpcodes ptrFunInstrucciones_p[16] = {&spC0_00E0_00EE,
-					     &spC1_1NNN,
-					     &spC2_2NNN,
-					     &spC3_3XKK,
-					     &spC4_4XKK,
-					     &spC5_5XY0,
-					     &spC6_6XKK,
-					     &spC7_7XKK,
-					     &spC8_sn,
-					     &spC9_9XY0,
-					     &spC0xA_ANNN,
-					     &spC0xB_BNNN,
-					     &spC0xC_CXKK,
-					     &spC0xD_DXYN,
-					     &spC0xE_EX9E_EXA1,
-					     &spC0xF_skk};
+procesarInstruccionesOpcodes ptrFunInstrucciones_p[16] = {
+    &nibble_0, &nibble_1, &nibble_2, &nibble_3,
+    &nibble_4, &nibble_5, &nibble_6, &nibble_7,
+    &nibble_8, &nibble_9, &nibble_A, &nibble_B,
+    &nibble_C, &nibble_D, &nibble_E, &nibble_F
+};
 
 /**
  * Initializes to cero a machine data structure. This function should be
@@ -592,9 +526,6 @@ step_machine(struct machine_t* cpu)
     byte y = (opcode >> 4) & 0xF;
     byte p = (opcode >> 12);
 
-  //com para no segmentation default
-  if (!(p < 0 || p > 15)){
     instruccion_p = ptrFunInstrucciones_p[p];
     instruccion_p(cpu, opcode, nnn, kk, n, x, y, p);
-  }
 }
