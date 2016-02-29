@@ -26,7 +26,7 @@
  * instruction sets I register to the memory address of a provided
  * number.
  */
-char hexcodes[] = {
+static char hexcodes[] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -45,25 +45,241 @@ char hexcodes[] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-/**
- * Initializes to cero a machine data structure. This function should be
- * called when the program is starting up to make sure that the machine
- * data structure is getting initialized. It also can be called everytime
- * the user wants the machine to be reinitialized, such as a reboot.
- *
- * @param machine machine data structure that wants to be initialized.
- */
-void
-init_machine(struct machine_t* machine)
-{
-    memset(machine, 0x00, sizeof(struct machine_t));
-    memcpy(machine->mem + 0x50, hexcodes, 80);
-    machine->pc = 0x200;
-    machine->wait_key = -1;
+/* Fxxx Opcodes. */
+
+static void
+skkC0x07_FX07 (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * FX07: LD X, DT
+       * Set V[x] to whatever is on DT register.
+       */
+      cpu->v[x] = cpu->dt;
 }
 
+static void
+skkC0x0A_FX0A (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * FX0A: LD X, K
+       * Halt the machine until a key is pressed, then save
+       * the key number pressed in register V[x].
+       */
+      cpu->wait_key = x;
+}
 
-void 
+static void
+skkC0x15_FX15 (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * FX15: LD DT, X
+       * Will set DT register to the value on V[x].
+       */
+      cpu->dt = cpu->v[x];
+}
+
+static void
+skkC0x18_FX18 (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+   /*
+    * FX18: LD ST, X
+    * Will set ST register to the value on V[x].
+    */
+  cpu->st = cpu->v[x];
+}
+
+static void
+skkC0x1E_FX1E (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * FX1E: ADD I, X
+       * Add V[x] to whatever is on I register.
+       */
+      cpu->i += cpu->v[x];
+}
+ 
+static void
+skkC0x29_FX29 (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * FX29: LD F, X
+       * Will set I to the address location where the sprite
+       * for drawing the number in V[x] is.
+       */
+      cpu->i = 0x50 + (cpu->v[x] & 0xF) * 5;
+}
+
+static void
+skkC0x33_FX33 (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * FX33: LD B, X
+       * Will set the value in memory address I, I+1 and I+2
+       * so that they represent the memory addresses for both
+       * hundreds, tens and ones for the number in V[x]
+       * register encoded in BCD.
+       */
+      cpu->mem[cpu->i + 2] = cpu->v[x] % 10;
+      cpu->mem[cpu->i + 1] = (cpu->v[x] / 10) % 10;
+      cpu->mem[cpu->i] = (cpu->v[x] / 100);
+}
+
+static void
+skkC0x55_FX55 (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * FX55: LD [I], X
+       * Will save in memory registers from V[0] to V[x] in
+       * memory addresses I to I+x. V[x] is included in what
+       * gets saved.
+       */
+      for (int reg = 0; reg <= x; reg++)
+	cpu->mem[cpu->i + reg] = cpu->v[reg];
+}
+
+static void
+skkC0x65_FX65 (struct machine_t* cpu, word opcode, word nnn,
+	       byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * FX65: LD X, [I]
+       * Will read from memory addresses I to I+x and store
+       * each value in registers V[0] to V[x]. V[x] is included
+       * in what is read.
+       */
+      for (int reg = 0; reg <= x; reg++)
+	cpu->v[reg] = cpu->mem[cpu->i + reg];
+}
+
+procesarInstruccionesOpcodes ptrFunInstrucciones_kk[9] = {&skkC0x07_FX07,
+                                            &skkC0x0A_FX0A,
+                                            &skkC0x15_FX15,
+                                            &skkC0x18_FX18,
+                                            &skkC0x1E_FX1E,
+                                            &skkC0x29_FX29,
+                                            &skkC0x33_FX33,
+                                            &skkC0x55_FX55,
+					    &skkC0x65_FX65};
+
+/* 8xyp opcodes. */
+
+static void
+snC0_8XY0 (struct machine_t* cpu, word opcode, word nnn,
+	   byte kk, byte n, byte x, byte y, byte p){
+  /*
+   * 8XY0: LD X, Y
+   * Set V[x] = V[y]
+   */
+  cpu->v[x] = cpu->v[y];
+}
+
+static void
+snC1_8XY1 (struct machine_t* cpu, word opcode, word nnn,
+	   byte kk, byte n, byte x, byte y, byte p){
+  /*
+   * 8XY1: OR X, Y
+   * Set V[x] to V[x] OR V[y].
+   */
+  cpu->v[x] |= cpu->v[y];
+}
+
+static void
+snC2_8XY2 (struct machine_t* cpu, word opcode, word nnn,
+	   byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * 8XY2: AND X, Y
+       * Set V[x] to V[x] AND V[y].
+       */
+      cpu->v[x] &= cpu->v[y];
+} 
+
+static void
+snC3_8XY3 (struct machine_t* cpu, word opcode, word nnn,
+	   byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * 8XY3: XOR X, Y
+       * Set V[x] to V[x] XOR V[y]
+       */
+      cpu->v[x] ^= cpu->v[y];
+}
+
+static void
+snC4_8XY4 (struct machine_t* cpu, word opcode, word nnn,
+	   byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * 8XY4: ADD X, Y
+       * Add V[y] to V[x]. V[15] is used as carry flag: if
+       * there is a carry, V[15] must be set to 1, else to 0.
+       */
+      cpu->v[0xf] = (cpu->v[x] > cpu->v[x] + cpu->v[y]);
+      cpu->v[x] += cpu->v[y];
+} 
+
+static void
+snC5_8XY5 (struct machine_t* cpu, word opcode, word nnn,
+	   byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * 8XY5: SUB X, Y
+       * Substract V[y] from V[x]. V[15] is used as borrow flag:
+       * if there is a borrow, V[15] must be set to 0, else
+       * to 1. Which in practice is easier to check as if
+       * V[x] is greater than V[y].
+       */
+      cpu->v[0xF] = (cpu->v[x] > cpu->v[y]);
+      cpu->v[x] -= cpu->v[y];
+}
+
+static void
+snC6_8X06 (struct machine_t* cpu, word opcode, word nnn,
+	   byte kk, byte n, byte x, byte y, byte p){
+      /*
+//---> esta mal escrito en vez de 0 va Y o es asi?       * 8X06: SHR X
+       * Shifts right V[x]. Least significant bit from V[x]
+       * before shifting will be moved to V[15]. Thus, V[15]
+       * will be set to 1 if V[x] was odd before shifting.
+       */
+      cpu->v[0xF] = (cpu->v[x] & 1);
+      cpu->v[x] >>= 1;
+}
+
+static void
+snC7_8XY7 (struct machine_t* cpu, word opcode, word nnn,
+	   byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * 8XY7: SUBN X, Y
+       * Substract V[x] from V[y] and store the result in V[x].
+       * V[15] is used as a borrow flag in the same sense than
+       * SUB X, Y did: V[15] is set to 0 if there is borrow,
+       * else to 1. Which is easier to check as if V[y] is
+       * greater than V[x].
+       */
+      cpu->v[0xF] = (cpu->v[y] > cpu->v[x]);
+      cpu->v[x] = cpu->v[y] - cpu->v[x];
+}
+
+static void
+snC0xE_8X0E (struct machine_t* cpu, word opcode, word nnn,
+	     byte kk, byte n, byte x, byte y, byte p){
+      /*
+       * 8X0E: SHL X
+       * Shifts left V[x]. Most significant bit from V[x] before
+       * shifting will be moved to V[15].
+       */
+      cpu->v[0xF] = ((cpu->v[x] & 0x80) != 0);
+      cpu->v[x] <<= 1;
+}
+
+procesarInstruccionesOpcodes ptrFunInstrucciones_n[9] = {&snC0_8XY0,
+					   &snC1_8XY1,
+					   &snC2_8XY2,
+					   &snC3_8XY3,
+					   &snC4_8XY4,
+					   &snC5_8XY5,
+					   &snC6_8X06,
+					   &snC7_8XY7,
+					   &snC0xE_8X0E};
+
+
+static void
 spC0_00E0_00EE (struct machine_t* cpu, word opcode, word nnn,
 		byte kk, byte n, byte x, byte y, byte p){
     if (opcode == 0x00e0) {
@@ -82,7 +298,7 @@ spC0_00E0_00EE (struct machine_t* cpu, word opcode, word nnn,
     }
 }
 
-void 
+static void
 spC1_1NNN (struct machine_t* cpu, word opcode, word nnn,
 	   byte kk, byte n, byte x, byte y, byte p){
  /*
@@ -92,7 +308,7 @@ spC1_1NNN (struct machine_t* cpu, word opcode, word nnn,
     cpu->pc = nnn;
 }
 
-void 
+static void
 spC2_2NNN (struct machine_t* cpu, word opcode, word nnn,
 	   byte kk, byte n, byte x, byte y, byte p){
   /*
@@ -104,7 +320,7 @@ spC2_2NNN (struct machine_t* cpu, word opcode, word nnn,
     cpu->pc = nnn;
 }
 
-void 
+static void
 spC3_3XKK (struct machine_t* cpu, word opcode, word nnn,
 	   byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -115,7 +331,7 @@ spC3_3XKK (struct machine_t* cpu, word opcode, word nnn,
       cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
-void 
+static void
 spC4_4XKK (struct machine_t* cpu, word opcode, word nnn,
 	   byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -126,7 +342,7 @@ spC4_4XKK (struct machine_t* cpu, word opcode, word nnn,
       cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
-void 
+static void
 spC5_5XY0 (struct machine_t* cpu, word opcode, word nnn,
 	   byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -137,7 +353,7 @@ spC5_5XY0 (struct machine_t* cpu, word opcode, word nnn,
       cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
-void 
+static void
 spC6_6XKK (struct machine_t* cpu, word opcode, word nnn,
 	   byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -147,7 +363,7 @@ spC6_6XKK (struct machine_t* cpu, word opcode, word nnn,
     cpu->v[x] = kk;
 }
 
-void 
+static void
 spC7_7XKK (struct machine_t* cpu, word opcode, word nnn,
 	   byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -157,7 +373,7 @@ spC7_7XKK (struct machine_t* cpu, word opcode, word nnn,
     cpu->v[x] = (cpu->v[x] + kk) & 0xff;
 }
 
-void 
+static void
 spC9_9XY0 (struct machine_t* cpu, word opcode, word nnn,
 	   byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -168,7 +384,7 @@ spC9_9XY0 (struct machine_t* cpu, word opcode, word nnn,
       cpu->pc = (cpu->pc + 2) & 0xFFF;
 } 
 
-void 
+static void
 spC0xA_ANNN (struct machine_t* cpu, word opcode, word nnn,
 	     byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -178,7 +394,7 @@ spC0xA_ANNN (struct machine_t* cpu, word opcode, word nnn,
     cpu->i = nnn;
 }
 
-void 
+static void
 spC0xB_BNNN (struct machine_t* cpu, word opcode, word nnn,
 	     byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -188,7 +404,7 @@ spC0xB_BNNN (struct machine_t* cpu, word opcode, word nnn,
     cpu->pc = (cpu->v[0] + nnn) & 0xFFF;
 }
 
-void 
+static void
 spC0xC_CXKK (struct machine_t* cpu, word opcode, word nnn,
 	     byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -199,7 +415,7 @@ spC0xC_CXKK (struct machine_t* cpu, word opcode, word nnn,
     cpu->v[x] = rand() & kk;
 }
 
-void 
+static void
 spC0xD_DXYN (struct machine_t* cpu, word opcode, word nnn,
 	     byte kk, byte n, byte x, byte y, byte p){
     /*
@@ -224,7 +440,7 @@ spC0xD_DXYN (struct machine_t* cpu, word opcode, word nnn,
     }
 } 
 
-void 
+static void
 spC0xE_EX9E_EXA1 (struct machine_t* cpu, word opcode, word nnn,
 		  byte kk, byte n, byte x, byte y, byte p){
     if (kk == 0x9E) {
@@ -244,253 +460,12 @@ spC0xE_EX9E_EXA1 (struct machine_t* cpu, word opcode, word nnn,
     }
 }
 
-void 
-snC0_8XY0 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-  /*
-   * 8XY0: LD X, Y
-   * Set V[x] = V[y]
-   */
-  cpu->v[x] = cpu->v[y];
-}
 
-void 
-snC1_8XY1 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-  /*
-   * 8XY1: OR X, Y
-   * Set V[x] to V[x] OR V[y].
-   */
-  cpu->v[x] |= cpu->v[y];
-}
 
-void 
-snC2_8XY2 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY2: AND X, Y
-       * Set V[x] to V[x] AND V[y].
-       */
-      cpu->v[x] &= cpu->v[y];
-} 
 
-void 
-snC3_8XY3 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY3: XOR X, Y
-       * Set V[x] to V[x] XOR V[y]
-       */
-      cpu->v[x] ^= cpu->v[y];
-}
 
-void 
-snC4_8XY4 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY4: ADD X, Y
-       * Add V[y] to V[x]. V[15] is used as carry flag: if
-       * there is a carry, V[15] must be set to 1, else to 0.
-       */
-      cpu->v[0xf] = (cpu->v[x] > cpu->v[x] + cpu->v[y]);
-      cpu->v[x] += cpu->v[y];
-} 
 
-void 
-snC5_8XY5 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY5: SUB X, Y
-       * Substract V[y] from V[x]. V[15] is used as borrow flag:
-       * if there is a borrow, V[15] must be set to 0, else
-       * to 1. Which in practice is easier to check as if
-       * V[x] is greater than V[y].
-       */
-      cpu->v[0xF] = (cpu->v[x] > cpu->v[y]);
-      cpu->v[x] -= cpu->v[y];
-}
-
-void 
-snC6_8X06 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-//---> esta mal escrito en vez de 0 va Y o es asi?       * 8X06: SHR X
-       * Shifts right V[x]. Least significant bit from V[x]
-       * before shifting will be moved to V[15]. Thus, V[15]
-       * will be set to 1 if V[x] was odd before shifting.
-       */
-      cpu->v[0xF] = (cpu->v[x] & 1);
-      cpu->v[x] >>= 1;
-}
-
-void 
-snC7_8XY7 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY7: SUBN X, Y
-       * Substract V[x] from V[y] and store the result in V[x].
-       * V[15] is used as a borrow flag in the same sense than
-       * SUB X, Y did: V[15] is set to 0 if there is borrow,
-       * else to 1. Which is easier to check as if V[y] is
-       * greater than V[x].
-       */
-      cpu->v[0xF] = (cpu->v[y] > cpu->v[x]);
-      cpu->v[x] = cpu->v[y] - cpu->v[x];
-}
-
-void 
-snC0xE_8X0E (struct machine_t* cpu, word opcode, word nnn,
-	     byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8X0E: SHL X
-       * Shifts left V[x]. Most significant bit from V[x] before
-       * shifting will be moved to V[15].
-       */
-      cpu->v[0xF] = ((cpu->v[x] & 0x80) != 0);
-      cpu->v[x] <<= 1;
-}
-
-void 
-skkC0x07_FX07 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX07: LD X, DT
-       * Set V[x] to whatever is on DT register.
-       */
-      cpu->v[x] = cpu->dt;
-}
-
-void 
-skkC0x0A_FX0A (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX0A: LD X, K
-       * Halt the machine until a key is pressed, then save
-       * the key number pressed in register V[x].
-       */
-      cpu->wait_key = x;
-}
-
-void 
-skkC0x15_FX15 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX15: LD DT, X
-       * Will set DT register to the value on V[x].
-       */
-      cpu->dt = cpu->v[x];
-}
-
-void 
-skkC0x18_FX18 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-   /*
-    * FX18: LD ST, X
-    * Will set ST register to the value on V[x].
-    */
-  cpu->st = cpu->v[x];
-}
-
-void 
-skkC0x1E_FX1E (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX1E: ADD I, X
-       * Add V[x] to whatever is on I register.
-       */
-      cpu->i += cpu->v[x];
-}
- 
-void 
-skkC0x29_FX29 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX29: LD F, X
-       * Will set I to the address location where the sprite
-       * for drawing the number in V[x] is.
-       */
-      cpu->i = 0x50 + (cpu->v[x] & 0xF) * 5;
-}
-
-void 
-skkC0x33_FX33 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX33: LD B, X
-       * Will set the value in memory address I, I+1 and I+2
-       * so that they represent the memory addresses for both
-       * hundreds, tens and ones for the number in V[x]
-       * register encoded in BCD.
-       */
-      cpu->mem[cpu->i + 2] = cpu->v[x] % 10;
-      cpu->mem[cpu->i + 1] = (cpu->v[x] / 10) % 10;
-      cpu->mem[cpu->i] = (cpu->v[x] / 100);
-}
-
-void 
-skkC0x55_FX55 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX55: LD [I], X
-       * Will save in memory registers from V[0] to V[x] in
-       * memory addresses I to I+x. V[x] is included in what
-       * gets saved.
-       */
-      for (int reg = 0; reg <= x; reg++)
-	cpu->mem[cpu->i + reg] = cpu->v[reg];
-}
-
-void
-skkC0x65_FX65 (struct machine_t* cpu, word opcode, word nnn,
-	       byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * FX65: LD X, [I]
-       * Will read from memory addresses I to I+x and store
-       * each value in registers V[0] to V[x]. V[x] is included
-       * in what is read.
-       */
-      for (int reg = 0; reg <= x; reg++)
-	cpu->v[reg] = cpu->mem[cpu->i + reg];
-}
-
-procesarInstruccionesOpcodes ptrFunInstrucciones_p[16] = {&spC0_00E0_00EE,
-					     &spC1_1NNN,
-					     &spC2_2NNN,
-					     &spC3_3XKK,
-					     &spC4_4XKK,
-					     &spC5_5XY0,
-					     &spC6_6XKK,
-					     &spC7_7XKK,
-					     &spC8_sn,
-					     &spC9_9XY0,
-					     &spC0xA_ANNN,
-					     &spC0xB_BNNN,
-					     &spC0xC_CXKK,
-					     &spC0xD_DXYN,
-					     &spC0xE_EX9E_EXA1,
-					     &spC0xF_skk};
-
-procesarInstruccionesOpcodes ptrFunInstrucciones_n[9] = {&snC0_8XY0,
-					   &snC1_8XY1,
-					   &snC2_8XY2,
-					   &snC3_8XY3,
-					   &snC4_8XY4,
-					   &snC5_8XY5,
-					   &snC6_8X06,
-					   &snC7_8XY7,
-					   &snC0xE_8X0E};
-
-procesarInstruccionesOpcodes ptrFunInstrucciones_kk[9] = {&skkC0x07_FX07,
-                                            &skkC0x0A_FX0A,
-                                            &skkC0x15_FX15,
-                                            &skkC0x18_FX18,
-                                            &skkC0x1E_FX1E,
-                                            &skkC0x29_FX29,
-                                            &skkC0x33_FX33,
-                                            &skkC0x55_FX55,
-					    &skkC0x65_FX65};
-
-void 
+static void
 spC0xF_skk (struct machine_t* cpu, word opcode, word nnn,
 	    byte kk, byte n, byte x, byte y, byte p){
     
@@ -549,7 +524,7 @@ spC0xF_skk (struct machine_t* cpu, word opcode, word nnn,
     }
 }
 
-void 
+static void
 spC8_sn (struct machine_t* cpu, word opcode, word nnn,
 	 byte kk, byte n, byte x, byte y, byte p){
   if (!(n < 0 || n > 7)){
@@ -559,6 +534,40 @@ spC8_sn (struct machine_t* cpu, word opcode, word nnn,
    instruccion_n = ptrFunInstrucciones_n[n];
    instruccion_n(cpu, opcode, nnn, kk, n, x, y, p);
   }
+}
+
+procesarInstruccionesOpcodes ptrFunInstrucciones_p[16] = {&spC0_00E0_00EE,
+					     &spC1_1NNN,
+					     &spC2_2NNN,
+					     &spC3_3XKK,
+					     &spC4_4XKK,
+					     &spC5_5XY0,
+					     &spC6_6XKK,
+					     &spC7_7XKK,
+					     &spC8_sn,
+					     &spC9_9XY0,
+					     &spC0xA_ANNN,
+					     &spC0xB_BNNN,
+					     &spC0xC_CXKK,
+					     &spC0xD_DXYN,
+					     &spC0xE_EX9E_EXA1,
+					     &spC0xF_skk};
+
+/**
+ * Initializes to cero a machine data structure. This function should be
+ * called when the program is starting up to make sure that the machine
+ * data structure is getting initialized. It also can be called everytime
+ * the user wants the machine to be reinitialized, such as a reboot.
+ *
+ * @param machine machine data structure that wants to be initialized.
+ */
+void
+init_machine(struct machine_t* machine)
+{
+    memset(machine, 0x00, sizeof(struct machine_t));
+    memcpy(machine->mem + 0x50, hexcodes, 80);
+    machine->pc = 0x200;
+    machine->wait_key = -1;
 }
 
 /**
