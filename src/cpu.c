@@ -45,6 +45,9 @@ static char hexcodes[] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
+typedef void (*opcode_table_t) (struct machine_t* cpu,
+        word opcode, word nnn, byte kk, byte n, byte x, byte y, byte p);
+
 static void
 nibble_0(struct machine_t* cpu, word opcode, word nnn,
         byte kk, byte n, byte x, byte y, byte p)
@@ -290,21 +293,13 @@ nibble_F(struct machine_t* cpu, word opcode, word nnn,
     }
 }
 
-procesarInstruccionesOpcodes ptrFunInstrucciones_p[16] = {
+opcode_table_t ptrFunInstrucciones_p[16] = {
     &nibble_0, &nibble_1, &nibble_2, &nibble_3,
     &nibble_4, &nibble_5, &nibble_6, &nibble_7,
     &nibble_8, &nibble_9, &nibble_A, &nibble_B,
     &nibble_C, &nibble_D, &nibble_E, &nibble_F
 };
 
-/**
- * Initializes to cero a machine data structure. This function should be
- * called when the program is starting up to make sure that the machine
- * data structure is getting initialized. It also can be called everytime
- * the user wants the machine to be reinitialized, such as a reboot.
- *
- * @param machine machine data structure that wants to be initialized.
- */
 void
 init_machine(struct machine_t* machine)
 {
@@ -314,13 +309,6 @@ init_machine(struct machine_t* machine)
     machine->wait_key = -1;
 }
 
-/**
- * Step the machine. This method will fetch an instruction from memory
- * and execute it. After invoking this method, the state of the provided
- * machine is modified according to the executed instruction.
- *
- * @param cpu reference pointer to the machine to step
- */
 void
 step_machine(struct machine_t* cpu)
 {
@@ -336,6 +324,6 @@ step_machine(struct machine_t* cpu)
     byte y = (opcode >> 4) & 0xF;
     byte p = (opcode >> 12);
 
-    instruccion_p = ptrFunInstrucciones_p[p];
-    instruccion_p(cpu, opcode, nnn, kk, n, x, y, p);
+    opcode_table_t opcodefun = ptrFunInstrucciones_p[p];
+    opcodefun(cpu, opcode, nnn, kk, n, x, y, p);
 }

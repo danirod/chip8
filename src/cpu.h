@@ -76,15 +76,23 @@ struct machine_t
     keyboard_poller_t poller; // Keyboard poller
 };
 
+/**
+ * Initializes to cero a machine data structure. This function should be
+ * called when the program is starting up to make sure that the machine
+ * data structure is getting initialized. It also can be called everytime
+ * the user wants the machine to be reinitialized, such as a reboot.
+ *
+ * @param machine machine data structure that wants to be initialized.
+ */
 void init_machine(struct machine_t*);
 
+/**
+ * Step the machine. This method will fetch an instruction from memory
+ * and execute it. After invoking this method, the state of the provided
+ * machine is modified according to the executed instruction.
+ *
+ * @param cpu reference pointer to the machine to step
+ */
 void step_machine(struct machine_t*);
 
-typedef void (*procesarInstruccionesOpcodes)(struct machine_t*, word, word,
-                                             byte, byte, byte, byte,
-                                             byte);
-procesarInstruccionesOpcodes instruccion_p;
-procesarInstruccionesOpcodes instruccion_n;
-procesarInstruccionesOpcodes instruccion_kk;
- 
 #endif // CPU_H_
