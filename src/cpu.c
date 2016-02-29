@@ -160,124 +160,6 @@ procesarInstruccionesOpcodes ptrFunInstrucciones_kk[9] = {&skkC0x07_FX07,
                                             &skkC0x55_FX55,
 					    &skkC0x65_FX65};
 
-/* 8xyp opcodes. */
-
-static void
-snC0_8XY0 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-  /*
-   * 8XY0: LD X, Y
-   * Set V[x] = V[y]
-   */
-  cpu->v[x] = cpu->v[y];
-}
-
-static void
-snC1_8XY1 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-  /*
-   * 8XY1: OR X, Y
-   * Set V[x] to V[x] OR V[y].
-   */
-  cpu->v[x] |= cpu->v[y];
-}
-
-static void
-snC2_8XY2 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY2: AND X, Y
-       * Set V[x] to V[x] AND V[y].
-       */
-      cpu->v[x] &= cpu->v[y];
-} 
-
-static void
-snC3_8XY3 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY3: XOR X, Y
-       * Set V[x] to V[x] XOR V[y]
-       */
-      cpu->v[x] ^= cpu->v[y];
-}
-
-static void
-snC4_8XY4 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY4: ADD X, Y
-       * Add V[y] to V[x]. V[15] is used as carry flag: if
-       * there is a carry, V[15] must be set to 1, else to 0.
-       */
-      cpu->v[0xf] = (cpu->v[x] > cpu->v[x] + cpu->v[y]);
-      cpu->v[x] += cpu->v[y];
-} 
-
-static void
-snC5_8XY5 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY5: SUB X, Y
-       * Substract V[y] from V[x]. V[15] is used as borrow flag:
-       * if there is a borrow, V[15] must be set to 0, else
-       * to 1. Which in practice is easier to check as if
-       * V[x] is greater than V[y].
-       */
-      cpu->v[0xF] = (cpu->v[x] > cpu->v[y]);
-      cpu->v[x] -= cpu->v[y];
-}
-
-static void
-snC6_8X06 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-//---> esta mal escrito en vez de 0 va Y o es asi?       * 8X06: SHR X
-       * Shifts right V[x]. Least significant bit from V[x]
-       * before shifting will be moved to V[15]. Thus, V[15]
-       * will be set to 1 if V[x] was odd before shifting.
-       */
-      cpu->v[0xF] = (cpu->v[x] & 1);
-      cpu->v[x] >>= 1;
-}
-
-static void
-snC7_8XY7 (struct machine_t* cpu, word opcode, word nnn,
-	   byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8XY7: SUBN X, Y
-       * Substract V[x] from V[y] and store the result in V[x].
-       * V[15] is used as a borrow flag in the same sense than
-       * SUB X, Y did: V[15] is set to 0 if there is borrow,
-       * else to 1. Which is easier to check as if V[y] is
-       * greater than V[x].
-       */
-      cpu->v[0xF] = (cpu->v[y] > cpu->v[x]);
-      cpu->v[x] = cpu->v[y] - cpu->v[x];
-}
-
-static void
-snC0xE_8X0E (struct machine_t* cpu, word opcode, word nnn,
-	     byte kk, byte n, byte x, byte y, byte p){
-      /*
-       * 8X0E: SHL X
-       * Shifts left V[x]. Most significant bit from V[x] before
-       * shifting will be moved to V[15].
-       */
-      cpu->v[0xF] = ((cpu->v[x] & 0x80) != 0);
-      cpu->v[x] <<= 1;
-}
-
-procesarInstruccionesOpcodes ptrFunInstrucciones_n[9] = {&snC0_8XY0,
-					   &snC1_8XY1,
-					   &snC2_8XY2,
-					   &snC3_8XY3,
-					   &snC4_8XY4,
-					   &snC5_8XY5,
-					   &snC6_8X06,
-					   &snC7_8XY7,
-					   &snC0xE_8X0E};
-
 static void
 nibble_0(struct machine_t* cpu, word opcode, word nnn,
         byte kk, byte n, byte x, byte y, byte p)
@@ -360,12 +242,49 @@ static void
 nibble_8(struct machine_t* cpu, word opcode, word nnn,
         byte kk, byte n, byte x, byte y, byte p)
 {
-    if (!(n < 0 || n > 7)) {
-        instruccion_n = ptrFunInstrucciones_n[n];
-        instruccion_n(cpu, opcode, nnn, kk, n, x, y, p);
-    } else if (n == 0xE) {
-        instruccion_n = ptrFunInstrucciones_n[n];
-        instruccion_n(cpu, opcode, nnn, kk, n, x, y, p);
+    switch (n)
+    {
+    case 0:
+        /* 8XY0: LD - Set V[X] = V[Y]. */
+        cpu->v[x] = cpu->v[y];
+        break;
+    case 1:
+        /* 8XY1: OR - Set V[X] |= V[Y]. */
+        cpu->v[x] |= cpu->v[y];
+        break;
+    case 2:
+        /* 8XY2: AND - Set V[X] &= V[Y]. */
+        cpu->v[x] &= cpu->v[y];
+        break;
+    case 3:
+        /* 8XY3: XOR - Set V[X] ^= V[Y]. */
+        cpu->v[x] ^= cpu->v[y];
+        break;
+    case 4:
+        /* 8XY4: ADD - Set V[X] += V[Y], V[15] is carry flag. */
+        cpu->v[0xf] = (cpu->v[x] > cpu->v[x] + cpu->v[y]);
+        cpu->v[x] += cpu->v[y];
+        break;
+    case 5:
+        /* 8XY5: SUB - Set V[X] -= V[Y], V[15] is borrow flag. */
+        cpu->v[0xf] = (cpu->v[x] > cpu->v[y]);
+        cpu->v[x] -= cpu->v[y];
+        break;
+    case 6:
+        /* 8X06: SHR - Shifts right V[X], LSB bit goes to V[15]. */
+        cpu->v[0xf] = (cpu->v[x] & 1);
+        cpu->v[x] >>= 1;
+        break;
+    case 7:
+        /* 8XY7: SUBN X, Y - Set V[X] = V[Y] - V[X], V[16] is borrow. */
+        cpu->v[0xF] = (cpu->v[y] > cpu->v[x]);
+        cpu->v[x] = cpu->v[y] - cpu->v[x];
+        break;
+    case 0xE:
+        /* 8X0E: SHL - Shifts left V[X], MSB bit goes to V[15]. */
+        cpu->v[0xF] = ((cpu->v[x] & 0x80) != 0);
+        cpu->v[x] <<= 1;
+        break;
     }
 }
 
