@@ -63,7 +63,7 @@ nibble_0(struct machine_t* cpu, word opcode)
     } else if (opcode == 0x00ee) {
         /* 00EE: RET - Return from subroutine. */
         if (cpu->sp > 0)
-        cpu->pc = cpu->stack[--cpu->sp];
+        cpu->pc = cpu->stack[(int) --cpu->sp];
         /* TODO: Should throw an error on stack underflow. */
     }
 }
@@ -80,7 +80,7 @@ nibble_2(struct machine_t* cpu, word opcode)
 {
     /* 2NNN: CALL - Call subroutine starting at address NNN. */
     if (cpu->sp < 16) {
-        cpu->stack[cpu->sp++] = cpu->pc;
+        cpu->stack[(int) cpu->sp++] = cpu->pc;
         cpu->pc = OPCODE_NNN(opcode);
     }
     /* TODO: Should throw an error on stack overflow. */

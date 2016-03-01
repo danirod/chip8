@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cpu.h>
-
+#include "cpu.h"
 #include "sdl.h"
 #include "../config.h"
 
@@ -188,7 +187,7 @@ main(int argc, char** argv)
      * given.
      */
     if (optind >= argc) {
-        fprintf(stderr, "%s: file not given. '%1$s -h' for help.\n", argv[0]);
+        fprintf(stderr, "%1$s: no file given. '%1$s -h' for help.\n", argv[0]);
         exit(1);
     }
 
