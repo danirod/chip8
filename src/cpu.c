@@ -20,6 +20,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define OPCODE_NNN(opcode) (opcode & 0xFFF)
+#define OPCODE_KK(opcode) (opcode & 0xFF)
+#define OPCODE_N(opcode) (opcode & 0xF)
+#define OPCODE_X(opcode) ((opcode >> 8) & 0xF)
+#define OPCODE_Y(opcode) ((opcode >> 4) & 0xF)
+#define OPCODE_P(opcode) (opcode >> 12)
+
 /**
  * These are the bitmaps for the sprites that represent numbers.
  * This array should be memcopied to memory address 0x050. LD F, Vx
@@ -45,12 +52,10 @@ static char hexcodes[] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-typedef void (*opcode_table_t) (struct machine_t* cpu,
-        word opcode, word nnn, byte kk, byte n, byte x, byte y, byte p);
+typedef void (*opcode_table_t) (struct machine_t* cpu, word opcode);
 
 static void
-nibble_0(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_0(struct machine_t* cpu, word opcode)
 {
     if (opcode == 0x00e0) {
         /* 00E0: CLS - Clear the screen. */
@@ -64,73 +69,67 @@ nibble_0(struct machine_t* cpu, word opcode, word nnn,
 }
 
 static void
-nibble_1(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_1(struct machine_t* cpu, word opcode)
 {
     /* 1NNN: JMP - Jump to address location NNN. */
-    cpu->pc = nnn;
+    cpu->pc = OPCODE_NNN(opcode);
 }
 
 static void
-nibble_2(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_2(struct machine_t* cpu, word opcode)
 {
     /* 2NNN: CALL - Call subroutine starting at address NNN. */
     if (cpu->sp < 16) {
         cpu->stack[cpu->sp++] = cpu->pc;
-        cpu->pc = nnn;
+        cpu->pc = OPCODE_NNN(opcode);
     }
     /* TODO: Should throw an error on stack overflow. */
 }
 
 static void
-nibble_3(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_3(struct machine_t* cpu, word opcode)
 {
     /* 3XKK: SE: Skip next instruction if V[X] = KK. */
-    if (cpu->v[x] == kk)
+    if (cpu->v[OPCODE_X(opcode)] == OPCODE_KK(opcode))
         cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
 static void
-nibble_4(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_4(struct machine_t* cpu, word opcode)
 {
     /* 4XKK: SNE - Skip next instruction if V[X] != KK. */
-    if (cpu->v[x] != kk)
+    if (cpu->v[OPCODE_X(opcode)] != OPCODE_KK(opcode))
         cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
 static void
-nibble_5(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_5(struct machine_t* cpu, word opcode)
 {
     /* 5XY0: SE - Skip next instruction if V[X] == V[Y]. */
-    if (cpu->v[x] == cpu->v[y])
+    if (cpu->v[OPCODE_X(opcode)] == cpu->v[OPCODE_Y(opcode)])
         cpu->pc = (cpu->pc + 2) & 0xfff;
 }
 
 static void
-nibble_6(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_6(struct machine_t* cpu, word opcode)
 {
     /* 6XKK: LD - Set V[X] = KK. */
-    cpu->v[x] = kk;
+    cpu->v[OPCODE_X(opcode)] = OPCODE_KK(opcode);
 }
 
 static void
-nibble_7(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_7(struct machine_t* cpu, word opcode)
 {
     /* 7XKK: ADD - Add KK to V[X]. */
-    cpu->v[x] = (cpu->v[x] + kk) & 0xff;
+    cpu->v[OPCODE_X(opcode)] += OPCODE_KK(opcode);
 }
 
 static void
-nibble_8(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_8(struct machine_t* cpu, word opcode)
 {
-    switch (n)
+    /* All these opcodes work with X and most of them with Y, worth it. */
+    byte x = OPCODE_X(opcode), y = OPCODE_Y(opcode);
+    switch (OPCODE_N(opcode))
     {
     case 0:
         /* 8XY0: LD - Set V[X] = V[Y]. */
@@ -177,45 +176,41 @@ nibble_8(struct machine_t* cpu, word opcode, word nnn,
 }
 
 static void
-nibble_9(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_9(struct machine_t* cpu, word opcode)
 {
     /* 9XY0: SNE - Skip next instruction if V[X] != V[Y]. */
-    if (cpu->v[x] != cpu->v[y])
+    if (cpu->v[OPCODE_X(opcode)] != cpu->v[OPCODE_Y(opcode)])
         cpu->pc = (cpu->pc + 2) & 0xFFF;
 }
 
 static void
-nibble_A(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_A(struct machine_t* cpu, word opcode)
 {
     /* ANNN: LD - Set I to NNN. */
-    cpu->i = nnn;
+    cpu->i = OPCODE_NNN(opcode);
 }
 
 static void
-nibble_B(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_B(struct machine_t* cpu, word opcode)
 {
     /* BNNN: JP - Jump to memory address (V[0] + NNN). */
-    cpu->pc = (cpu->v[0] + nnn) & 0xFFF;
+    cpu->pc = (cpu->v[0] + OPCODE_NNN(opcode)) & 0xFFF;
 }
 
 static void
-nibble_C(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_C(struct machine_t* cpu, word opcode)
 {
     /* CXKK: RND - Put a random value, bitmasked against KK in V[X]. */
-    cpu->v[x] = rand() & kk;
+    cpu->v[OPCODE_X(opcode)] = rand() & OPCODE_KK(opcode);
 }
 
 static void
-nibble_D(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_D(struct machine_t* cpu, word opcode)
 {
     /* DXYN: DRW - Draw a sprite on the screen at location V[X], V[Y]. */
+    byte x = OPCODE_X(opcode), y = OPCODE_Y(opcode);
     cpu->v[15] = 0;
-    for (int j = 0; j < n; j++) {
+    for (int j = 0; j < OPCODE_N(opcode); j++) {
         byte sprite = cpu->mem[cpu->i + j];
         for (int i = 0; i < 8; i++) {
             int px = (cpu->v[x] + i) & 63;
@@ -229,64 +224,62 @@ nibble_D(struct machine_t* cpu, word opcode, word nnn,
 }
 
 static void
-nibble_E(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_E(struct machine_t* cpu, word opcode)
 {
-    if (kk == 0x9E) {
+    if (OPCODE_KK(opcode) == 0x9E) {
         /* EX9E: SKP - Skip next instruction if key V[X] is down. */
-        if (cpu->poller(cpu->v[x]))
+        if (cpu->poller(cpu->v[OPCODE_X(opcode)]))
             cpu->pc = (cpu->pc + 2) & 0xFFF;
-    } else if (kk == 0xA1) {
+    } else if (OPCODE_KK(opcode) == 0xA1) {
         /* EXA1: SKNP - Skip next instruction if key V[X] is not down. */
-        if (!cpu->poller(cpu->v[x]))
+        if (!cpu->poller(cpu->v[OPCODE_X(opcode)]))
             cpu->pc = (cpu->pc + 2) & 0xFFF;
     }
 }
 
 static void
-nibble_F(struct machine_t* cpu, word opcode, word nnn,
-        byte kk, byte n, byte x, byte y, byte p)
+nibble_F(struct machine_t* cpu, word opcode)
 {
-    switch (kk) {
+    switch (OPCODE_KK(opcode)) {
     case 0x07:
         /* FX07: LD - Set V[X] to DT. */
-        cpu->v[x] = cpu->dt;
+        cpu->v[OPCODE_X(opcode)] = cpu->dt;
         break;
     case 0x0A:
         /* FX0A: LD - Wait for a keypress, then store the key in V[X]. */
-        cpu->wait_key = x;
+        cpu->wait_key = OPCODE_X(opcode);
         break;
     case 0x15:
         /* FX15: LD - Set DT to V[X]. */
-        cpu->dt = cpu->v[x];
+        cpu->dt = cpu->v[OPCODE_X(opcode)];
         break;
     case 0x18:
         /* FX18: LD - Set ST to V[X]. */
-        cpu->st = cpu->v[x];
+        cpu->st = cpu->v[OPCODE_X(opcode)];
         break;
     case 0x1E:
         /* FX1E: ADD - Add V[X] to I. */
-        cpu->i += cpu->v[x];
+        cpu->i += cpu->v[OPCODE_X(opcode)];
         break;
     case 0x29:
         /* FX29: LD - Set I to the address location for the sprite. */
-        cpu->i = 0x50 + (cpu->v[x] & 0xF) * 5;
+        cpu->i = 0x50 + (cpu->v[OPCODE_X(opcode)] & 0xF) * 5;
         break;
     case 0x33:
         /* FX33: Represent V[X] as BCD in I, I+1, I+2. */
-        cpu->mem[cpu->i + 2] = cpu->v[x] % 10;
-        cpu->mem[cpu->i + 1] = (cpu->v[x] / 10) % 10;
-        cpu->mem[cpu->i] = cpu->v[x] / 100;
+        cpu->mem[cpu->i + 2] = cpu->v[OPCODE_X(opcode)] % 10;
+        cpu->mem[cpu->i + 1] = (cpu->v[OPCODE_X(opcode)] / 10) % 10;
+        cpu->mem[cpu->i] = cpu->v[OPCODE_X(opcode)] / 100;
         break;
     case 0x55:
         /* FX55: LD - Save registers V[0] to V[x] starting at I. */
-        for (int reg = 0; reg <= x; reg++) {
+        for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
             cpu->mem[cpu->i + reg] = cpu->v[reg];
         }
         break;
     case 0x65:
         /* FX65: LD - Load registers V[0] to V[x] from I. */
-        for (int reg = 0; reg <= x; reg++) {
+        for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
             cpu->v[reg] = cpu->mem[cpu->i + reg];
         }
         break;
@@ -316,14 +309,6 @@ step_machine(struct machine_t* cpu)
     word opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
     cpu->pc = (cpu->pc + 2) & 0xFFF;
 
-    // Extract bit nibbles from the opcode
-    word nnn = opcode & 0x0FFF;
-    byte kk = opcode & 0xFF;
-    byte n = opcode & 0xF;
-    byte x = (opcode >> 8) & 0xF;
-    byte y = (opcode >> 4) & 0xF;
-    byte p = (opcode >> 12);
-
-    opcode_table_t opcodefun = ptrFunInstrucciones_p[p];
-    opcodefun(cpu, opcode, nnn, kk, n, x, y, p);
+    opcode_table_t opcodefun = ptrFunInstrucciones_p[OPCODE_P(opcode)];
+    opcodefun(cpu, opcode);
 }
