@@ -83,7 +83,7 @@ load_hex(const char* file, struct machine_t* machine)
     if (hexfile == NULL) {
         return 1;
     }
-    fread(hexfile, length, 1, fp);
+    (void) fread(hexfile, length, 1, fp);
     fclose(fp);
 
     int mempos = 0x200;
@@ -138,7 +138,7 @@ load_rom(const char* file, struct machine_t* machine)
     }
 
     // Everything is OK, read the ROM.
-    fread(machine->mem + 0x200, length, 1, fp);
+    (void) fread(machine->mem + 0x200, length, 1, fp);
     fclose(fp);
     return 0;
 }
