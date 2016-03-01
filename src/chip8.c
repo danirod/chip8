@@ -47,7 +47,7 @@ usage(const char* name)
     printf("Usage: %s [-h | --help] [-v | --version] [--hex] <file>\n", name);
 }
 
-char
+static char
 hex_to_bin(char hex)
 {
     if (hex >= '0' && hex <= '9')
@@ -83,26 +83,21 @@ load_hex(const char* file, struct machine_t* machine)
     if (hexfile == NULL) {
         return 1;
     }
-
     fread(hexfile, length, 1, fp);
     fclose(fp);
 
     int mempos = 0x200;
-
     if (length & 0x01) length--;
     for (int i = 0; i < length; i += 2)
     {
-        char hi = hexfile[i];
-        char lo = hexfile[i + 1];
-
-        char hi_b = hex_to_bin(hi);
-        char lo_b = hex_to_bin(lo);
-        if (hi_b == -1 || lo_b == -1) {
+        char hi = hex_to_bin(hexfile[i]);
+        char lo = hex_to_bin(hexfile[i + 1]);
+        if (hi == -1 || lo == -1) {
             free(hexfile);
             return 1;
         }
 
-        machine->mem[mempos++] = hi_b << 4 | lo_b;
+        machine->mem[mempos++] = hi << 4 | lo;
         if (mempos > 0xFFF)
             break;
     }
@@ -148,6 +143,16 @@ load_rom(const char* file, struct machine_t* machine)
     return 0;
 }
 
+static int
+load_data(char* file, struct machine_t* mac)
+{
+    if (use_hexloader == 0) {
+        return load_rom(file, mac);
+    } else {
+        return load_hex(file, mac);
+    }
+}
+
 int
 main(int argc, char** argv)
 {
@@ -158,11 +163,9 @@ main(int argc, char** argv)
     while ((c = getopt_long(argc, argv, "hv", long_options, &indexptr)) != -1) {
         switch (c) {
             case 'h':
-                /* Print help message. */
                 usage(argv[0]);
                 exit(0);
             case 'v':
-                /* Print version information. */
                 printf("%s\n", PACKAGE_STRING);
                 exit(0);
                 break;
@@ -170,7 +173,6 @@ main(int argc, char** argv)
                 /* A long option is being processed, probably --hex. */
                 break;
             default:
-                /* Wrong argument. */
                 exit(1);
         }
     }
@@ -185,23 +187,12 @@ main(int argc, char** argv)
         exit(1);
     }
 
-    char* file = argv[optind];
-
     /* Init emulator. */
     srand(time(NULL));
     init_machine(&mac);
     mac.keydown = &is_key_down;
     mac.speaker = &update_speaker;
-    
-    if (use_hexloader == 0) {
-        if (load_rom(file, &mac)) {
-            return 1;
-        }
-    } else {
-        if (load_hex(file, &mac)) {
-            return 1;
-        }
-    }
+    load_data(argv[optind], &mac);
 
     /* Initialize SDL Context. */
     if (init_context()) {
