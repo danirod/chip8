@@ -557,7 +557,7 @@ mock_poller(char key)
 
 START_TEST(test_skp)
 {
-    cpu.poller = &mock_poller;
+    cpu.keydown = &mock_poller;
     put_opcode(0xE09E, 0);
     for (char key = 0; key < 16; key++) {
         cpu.pc = 0;
@@ -582,7 +582,7 @@ tcase_skp()
 
 START_TEST(test_sknp)
 {
-    cpu.poller = &mock_poller;
+    cpu.keydown = &mock_poller;
     put_opcode(0xE0A1, 0);
     for (char key = 0; key < 16; key++) {
         cpu.pc = 0;
@@ -636,7 +636,7 @@ tcase_lddt()
 
 START_TEST(test_ldk)
 {
-    cpu.poller = &mock_poller;
+    cpu.keydown = &mock_poller;
     cpu.v[0] = 0xFF;
     put_opcode(0xF00A, 0);
     step_machine(&cpu);

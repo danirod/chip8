@@ -55,6 +55,8 @@ typedef uint16_t address;
 
 typedef int (*keyboard_poller_t)(char);
 
+typedef void (*speaker_handler_t)(int);
+
 /**
  * Main data structure for holding information and state about processor.
  * Memory, stack, and register set is all defined here.
@@ -73,7 +75,9 @@ struct machine_t
 
     char screen[2048];          // Screen bitmap
     char wait_key;              // Key the CHIP-8 is idle waiting for.
-    keyboard_poller_t poller; // Keyboard poller
+
+    keyboard_poller_t keydown; // Keyboard poller
+    speaker_handler_t speaker; // Speaker handler
 };
 
 /**
@@ -84,15 +88,23 @@ struct machine_t
  *
  * @param machine machine data structure that wants to be initialized.
  */
-void init_machine(struct machine_t*);
+void init_machine(struct machine_t* cpu);
 
 /**
  * Step the machine. This method will fetch an instruction from memory
  * and execute it. After invoking this method, the state of the provided
  * machine is modified according to the executed instruction.
- *
- * @param cpu reference pointer to the machine to step
+ * @param cpu reference pointer to the machine to step.
  */
-void step_machine(struct machine_t*);
+void step_machine(struct machine_t* cpu);
+
+/**
+ * Updates subsystems that depend on time. Several parts of the CHIP-8
+ * depend on a timer. Examples are the DT and ST countdown registers, whose
+ * values must countdown at a rate of 60 times per second. This function
+ * should be called regularly so that the systems are updated.
+ * @param delta amount of milliseconds since last call to function.
+ */
+void update_time(struct machine_t* cpu, int delta);
 
 #endif // CPU_H_

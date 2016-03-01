@@ -52,6 +52,8 @@ static char hexcodes[] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
+static int global_delta;
+
 typedef void (*opcode_table_t) (struct machine_t* cpu, word opcode);
 
 static void
@@ -149,7 +151,7 @@ nibble_8(struct machine_t* cpu, word opcode)
         break;
     case 4:
         /* 8XY4: ADD - Set V[X] += V[Y], V[15] is carry flag. */
-        cpu->v[0xf] = (cpu->v[x] > cpu->v[x] + cpu->v[y]);
+        cpu->v[0xf] = (cpu->v[x] > (cpu->v[x] + cpu->v[y]));
         cpu->v[x] += cpu->v[y];
         break;
     case 5:
@@ -228,11 +230,11 @@ nibble_E(struct machine_t* cpu, word opcode)
 {
     if (OPCODE_KK(opcode) == 0x9E) {
         /* EX9E: SKP - Skip next instruction if key V[X] is down. */
-        if (cpu->poller(cpu->v[OPCODE_X(opcode)]))
+        if (cpu->keydown(cpu->v[OPCODE_X(opcode)]))
             cpu->pc = (cpu->pc + 2) & 0xFFF;
     } else if (OPCODE_KK(opcode) == 0xA1) {
         /* EXA1: SKNP - Skip next instruction if key V[X] is not down. */
-        if (!cpu->poller(cpu->v[OPCODE_X(opcode)]))
+        if (!cpu->keydown(cpu->v[OPCODE_X(opcode)]))
             cpu->pc = (cpu->pc + 2) & 0xFFF;
     }
 }
@@ -308,15 +310,56 @@ init_machine(struct machine_t* machine)
     memcpy(machine->mem + 0x50, hexcodes, 80);
     machine->pc = 0x200;
     machine->wait_key = -1;
+    global_delta = 0;
+    machine->keydown = NULL;
+    machine->speaker = NULL;
 }
 
 void
 step_machine(struct machine_t* cpu)
 {
+    /* Are we waiting for a key press? */
+    if (cpu->keydown && cpu->wait_key != -1) {
+        for (int i = 0; i < 16; i++) {
+            int status = cpu->keydown(i);
+            if (status) {
+                /* Key was down. Restore system. */
+                cpu->v[(int) cpu->wait_key] = i;
+                cpu->wait_key = -1;
+                break;
+            }
+        }
+        /* If we are still waiting for a key, don't execute opcode. */
+        if (cpu->wait_key != -1) {
+            return;
+        }
+    }
+    
     /* Fetch next opcode. */
     word opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
     cpu->pc = (cpu->pc + 2) & 0xFFF;
 
     /* Execute the corresponding handler from the nibble table. */
     nibbles[OPCODE_P(opcode)](cpu, opcode);
+}
+
+void
+update_time(struct machine_t* cpu, int delta)
+{
+    global_delta += delta;
+    while (global_delta > (1000 / 60)) {
+        global_delta -= (1000 / 60);
+        if (cpu->dt > 0) {
+            cpu->dt--;
+        }
+        if (cpu->st > 0) {
+            if (--cpu->st == 0 && cpu->speaker) {
+                /* Disable speaker buzz. */
+                cpu->speaker(0);
+            } else if (cpu->speaker) {
+                /* Enable speaker buzz. */
+                cpu->speaker(1);
+            }
+        }
+    }
 }
