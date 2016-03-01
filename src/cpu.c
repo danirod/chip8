@@ -286,7 +286,15 @@ nibble_F(struct machine_t* cpu, word opcode)
     }
 }
 
-opcode_table_t ptrFunInstrucciones_p[16] = {
+/**
+ * This is the handler table. There are 16 handlers in the following array,
+ * each one covering a subset of the opcodes for the CHIP-8. During opcode
+ * fetching, the most significant nibble (most significant hex char) is taken
+ * out as a value in range [0, 15]. The handler from this array whose index
+ * matches the value of that nibble is executed. The handler should execute
+ * opcodes starting by that value.
+ */
+static opcode_table_t nibbles[16] = {
     &nibble_0, &nibble_1, &nibble_2, &nibble_3,
     &nibble_4, &nibble_5, &nibble_6, &nibble_7,
     &nibble_8, &nibble_9, &nibble_A, &nibble_B,
@@ -305,10 +313,10 @@ init_machine(struct machine_t* machine)
 void
 step_machine(struct machine_t* cpu)
 {
-    // Read next opcode from memory.
+    /* Fetch next opcode. */
     word opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
     cpu->pc = (cpu->pc + 2) & 0xFFF;
 
-    opcode_table_t opcodefun = ptrFunInstrucciones_p[OPCODE_P(opcode)];
-    opcodefun(cpu, opcode);
+    /* Execute the corresponding handler from the nibble table. */
+    nibbles[OPCODE_P(opcode)](cpu, opcode);
 }
