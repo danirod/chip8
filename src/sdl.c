@@ -47,89 +47,168 @@ char keys[] = {
     SDL_SCANCODE_V  // F
 };
 
+/**
+ * This is a private structure used for holding information about audio.
+ * I need to create the structure becuase the feeding function for audio
+ * in SDL only allows one single parameter to be provided via user data.
+ * This little trick lets me pass more than one variable.
+ */
+struct audiodata_t
+{
+    float tone_pos;
+    float tone_inc;
+};
+
+static SDL_Window* window = NULL;
+
+static SDL_Renderer* renderer = NULL;
+
+static SDL_Texture* texture = NULL;
+
+static SDL_AudioDeviceID device = 0;
+
+static SDL_AudioSpec* spec = NULL;
+
+/**
+ * This is the function that generates the beep noise heard in the emulator.
+ * It generates RAW PCM values that are written to the stream. This is fast
+ * and has no dependencies on external files.
+ */
+static void
+feed(void* udata, Uint8* stream, int len)
+{
+    struct audiodata_t* audio = (struct audiodata_t *) udata;
+    for (int i = 0; i < len; i++) {
+        stream[i] = sinf(audio->tone_pos) + 127;
+        audio->tone_pos += audio->tone_inc;
+    }
+}
+
+/**
+  * Generate an audiospec data structure ready to be used by SDL Audio.
+  * It would be a nice idea if the sampling frequency and buffer size could
+  * be provided as an input instead of being hardcoded, though.
+  */
+static SDL_AudioSpec*
+init_audiospec(void)
+{
+    /* Initialize user data structure. */
+    struct audiodata_t* audio = malloc(sizeof(struct audiodata_t));
+    audio->tone_pos = 0;
+    audio->tone_inc = 2 * 3.14159 * 1000 / 44100;
+
+    /* Set up the audiospec data structure required by SDL. */
+    spec = (SDL_AudioSpec *) malloc(sizeof(SDL_AudioSpec));
+    spec->freq = 44100;
+    spec->format = AUDIO_U8;
+    spec->channels = 1;
+    spec->samples = 4096;
+    spec->callback = *feed;
+    spec->userdata = audio;
+    return spec;
+}
+
+static void
+clean_up()
+{
+    if (device != 0) {
+        SDL_CloseAudioDevice(device);
+        device = 0;
+    }
+    if (spec != NULL) {
+        free(spec->userdata);
+        free(spec);
+        spec = NULL;
+    }
+    if (texture != NULL) {
+        SDL_DestroyTexture(texture);
+        texture = NULL;
+    }
+    if (renderer != NULL) {
+        SDL_DestroyRenderer(renderer);
+        renderer = NULL;
+    }
+    if (window != NULL) {
+        SDL_DestroyWindow(window);
+        window = NULL;
+    }
+    SDL_Quit();
+}
+
+static void
+expand_screen(char* from, Uint32* to)
+{
+    for (int i = 0; i < 2048; i++)
+        to[i] = ( from[i]) ? -1 : 0;
+}
 
 int
-init_context(struct context_t* context)
+init_context()
 {
-    /*
-     * This code simulates exception treatment in C using `goto`.
-     * This is actually one of the clever situations where I think that
-     * `goto` comes handy and where I'm not against it. I'm not an
-     * enlightened supporter for `goto` either but I'm fed up with those
-     * jerks that just overly repeat "goto is bad" because somebody told
-     * them some time ago without even considering it. Of course I wouldn't
-     * use `goto` where any other structure goes better, but if you are
-     * very conscious on what you do and it makes a more concise syntax,
-     * why not. Of course, if you are on your first year of programming
-     * you should avoid `goto` until you are strong on structure programming.
-     *
-     * In this context, I need to call a set of SDL functions that are
-     * chained: eg, the return of one function is the parameter of the next.
-     * And I need to rollback those functions if any of them cracks.
-     * My Exception Treatment Table at the bottom of this function rollbacks
-     * everything and it has labels before every rollback function. If any
-     * SDL function fails it just has to jump to the appropiate label and
-     * start rollbacking from that entrypoint.
-     */
-
-    context->window = SDL_CreateWindow("CHIP-8 Emulator",
-                                       SDL_WINDOWPOS_CENTERED,
-                                       SDL_WINDOWPOS_CENTERED,
-                                       640,
-                                       320,
-                                       SDL_WINDOW_SHOWN);
-    if (context->window == NULL) {
-        goto exception_window;
+    if (SDL_Init(SDL_INIT_EVERYTHING)) {
+        return 1;
     }
-
-    context->renderer = SDL_CreateRenderer(context->window,
-                                           -1, SDL_RENDERER_ACCELERATED);
-    if (context->renderer == NULL) {
-        goto exception_renderer;
+    window = SDL_CreateWindow("CHIP-8 Emulator",
+            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+            640, 320, SDL_WINDOW_SHOWN);
+    if (window == NULL) {
+        clean_up();
+        return 1;
     }
-
-    context->texture = SDL_CreateTexture(context->renderer,
-                                         SDL_PIXELFORMAT_RGBA8888,
-                                         SDL_TEXTUREACCESS_STREAMING, 64, 32);
-    if (context->texture == NULL) {
-        goto exception_texture;
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL) {
+        clean_up();
+        return 1;
     }
-
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+            SDL_TEXTUREACCESS_STREAMING, 64, 32);
+    if (texture == NULL) {
+        clean_up();
+        return 1;
+    }
+    spec = init_audiospec();
+    device = SDL_OpenAudioDevice(NULL, 0, spec,
+            NULL, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+    if (device == 0) {
+        clean_up();
+        return 1;
+    }
     return 0;
-
-    // Exception Treatment:
-exception_texture:
-    SDL_DestroyRenderer(context->renderer);
-exception_renderer:
-    SDL_DestroyWindow(context->window);
-exception_window: // Nothing left to rollback; nothing was created
-    return 1;
 }
 
 void
-destroy_context(struct context_t* context)
+destroy_context()
 {
-    SDL_DestroyTexture(context->texture);
-    SDL_DestroyRenderer(context->renderer);
-    SDL_DestroyWindow(context->window);
+    clean_up();
+}
+
+int
+is_close_requested()
+{
+    SDL_Event ev;
+    while (SDL_PollEvent(&ev)) {
+        if (ev.type == SDL_QUIT) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void
-render(struct context_t* context, struct machine_t* machine)
+render_display(struct machine_t* machine)
 {
     void*   pixels;
     int     pitch;
 
-    // Updates SDL texture using what's on CPU screen.
-    SDL_LockTexture(context->texture, NULL,
-                    &pixels, &pitch);
+    /* Update SDL Texture with current data in CPU. */
+    SDL_LockTexture(texture, NULL, &pixels, &pitch);
     expand_screen(machine->screen, (Uint32 *) pixels);
-    SDL_UnlockTexture(context->texture);
+    SDL_UnlockTexture(texture);
 
-    // Render the texture on the renderer.
-    SDL_RenderClear(context->renderer);
-    SDL_RenderCopy(context->renderer, context->texture, NULL, NULL);
-    SDL_RenderPresent(context->renderer);
+    /* Render the texture. */
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
 }
 
 /**
@@ -153,48 +232,11 @@ is_key_down(char key)
 }
 
 void
-expand_screen(char* from, Uint32* to)
+update_speaker(int enabled)
 {
-    for (int i = 0; i < 2048; i++)
-        to[i] = ( from[i]) ? -1 : 0;
-}
-
-struct audiodata_t
-{
-    float tone_pos;
-    float tone_inc;
-};
-
-static void
-feed(void* udata, Uint8* stream, int len)
-{
-    struct audiodata_t* audio = (struct audiodata_t *) udata;
-    for (int i = 0; i < len; i++) {
-        stream[i] = sinf(audio->tone_pos) + 127;
-        audio->tone_pos += audio->tone_inc;
+    if (enabled) {
+        SDL_PauseAudioDevice(device, 0);
+    } else {
+        SDL_PauseAudioDevice(device, 1);
     }
-}
-
-SDL_AudioSpec*
-init_audiospec(void)
-{
-    struct audiodata_t* audio = malloc(sizeof(struct audiodata_t));
-    audio->tone_pos = 0;
-    audio->tone_inc = 2 * 3.14159 * 1000 / 44100;
-
-    SDL_AudioSpec* spec = (SDL_AudioSpec *) malloc(sizeof(SDL_AudioSpec));
-    spec->freq = 44100;
-    spec->format = AUDIO_U8;
-    spec->channels = 1;
-    spec->samples = 4096;
-    spec->callback = *feed;
-    spec->userdata = audio;
-    return spec;
-}
-
-void
-dispose_audiospec(SDL_AudioSpec* spec)
-{
-    free(spec->userdata);
-    free(spec);
 }

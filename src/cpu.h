@@ -55,6 +55,8 @@ typedef uint16_t address;
 
 typedef int (*keyboard_poller_t)(char);
 
+typedef void (*speaker_handler_t)(int);
+
 /**
  * Main data structure for holding information and state about processor.
  * Memory, stack, and register set is all defined here.
@@ -73,127 +75,36 @@ struct machine_t
 
     char screen[2048];          // Screen bitmap
     char wait_key;              // Key the CHIP-8 is idle waiting for.
-    keyboard_poller_t poller; // Keyboard poller
+
+    keyboard_poller_t keydown; // Keyboard poller
+    speaker_handler_t speaker; // Speaker handler
 };
 
-void init_machine(struct machine_t*);
+/**
+ * Initializes to cero a machine data structure. This function should be
+ * called when the program is starting up to make sure that the machine
+ * data structure is getting initialized. It also can be called everytime
+ * the user wants the machine to be reinitialized, such as a reboot.
+ *
+ * @param machine machine data structure that wants to be initialized.
+ */
+void init_machine(struct machine_t* cpu);
 
-void step_machine(struct machine_t*);
+/**
+ * Step the machine. This method will fetch an instruction from memory
+ * and execute it. After invoking this method, the state of the provided
+ * machine is modified according to the executed instruction.
+ * @param cpu reference pointer to the machine to step.
+ */
+void step_machine(struct machine_t* cpu);
 
-typedef void (*procesarInstruccionesOpcodes)(struct machine_t*, word, word,
-                                             byte, byte, byte, byte,
-                                             byte);
-procesarInstruccionesOpcodes instruccion_p;
-procesarInstruccionesOpcodes instruccion_n;
-procesarInstruccionesOpcodes instruccion_kk;
- 
-void init_machine(struct machine_t*);
-
-void step_machine(struct machine_t*);
-
-/*===================================================================================================                       
- *=============    Nomenclatura para comprender el nombre de las fuciones añadidas:    ==============                       
- *===================================================================================================                       
- *===    void spC1_1NNN (...);                                                                    ===                       
- *===                                                                                             ===                       
- *===    sp = "s" se refiere a switch, "p" a la expresion que se usaba           ej: switch (p) { ===                       
- *===    C1 = "C" se refiere a case,   "1" a la expresion constante que se usaba ej: case 1 :     ===                       
- *===                                                                                             ===                       
- *===    _1NNN = "_" se usa para que sea mas legible,                                             ===                       
- *===            "1NNN" se refiere a las instrucciones que maneja dentro,                         ===                       
- *===            si ahy varias, se reflejaran las que consten separandolas,                       ===                       
- *===            por "_", a no ser que anteriormente se manejaran mediante,                       ===                       
- *===            un switch, en ese caso se pondria la nomenclatura                                ===                       
- *===            para el switch cita anteriormente.                                               ===                       
- *===                                                                                             ===                       
- *===    ej: para dos instrucciones:                                                              ===                       
- *===        spC0_00E0_00EE                                                                       ===                       
- *===                                                                                             ===                       
- *===    ej: para una situacion en la que anteriormente se usaba in switch anidado:               ===                       
- *===        spC8_sn.                                                                             ===                       
- *===                                                                                             ===                       
- *===                                                                                             ===                       
- *===        Nota: Ahora se manejara dentro otro array de punteros a funciones.                   ===                       
- *===================================================================================================*/
-
-
-//instrucciones que usaba p en el antiguo switch, y la entrada al antiguo switch n.                                          
-void spC0_00E0_00EE   (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //00E0: CLS "or" 00EE: RET "in if"                               
-void spC1_1NNN        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //1NNN: JMP  NNN  
-
-void spC2_2NNN        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //2NNN: CALL NNN                                                 
-void spC3_3XKK        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //3XKK: SE   X, KK                                               
-void spC4_4XKK        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //4XKK: SNE  X, KK                                               
-void spC5_5XY0        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //5XY0: SE   X, Y                                                
-void spC6_6XKK        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //6XKK: LD   X, KK                                               
-void spC7_7XKK        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //7XKK: ADD  X, KK                                               
-void spC8_sn          (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte);
-
-void spC9_9XY0        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //9XY0: SNE X, Y  
-
-void spC0xA_ANNN      (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte);  //ANNN: LD I, NNN                                               
-void spC0xB_BNNN      (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte);  //BNNN: JP V0, NNN                                              
-void spC0xC_CXKK      (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte);  //CXKK: RND X, KK                                               
-void spC0xD_DXYN      (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte);  //DXYN: X, Y, N                                                 
-void spC0xE_EX9E_EXA1 (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte);  //EX9E: SKP X "or" EXA1: SKNP X "in if"                         
-void spC0xF_skk       (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte);
-
-//instrucciones que usaba n en el antiguo swich                                                                              
-void snC0_8XY0        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8XY0: LD   X, Y 
-
-void snC1_8XY1        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8XY1: OR   X, Y                                                
-void snC2_8XY2        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8XY2: AND  X, Y                                                
-void snC3_8XY3        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8XY3: XOR  X, Y                                                
-void snC4_8XY4        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8XY4: ADD  X, Y                                                
-void snC5_8XY5        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8XY5: SUB  X, Y                                                
-void snC6_8X06        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8X06: SHR  X                                                   
-void snC7_8XY7        (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8XY7: SUBN X, Y                                                
-void snC0xE_8X0E      (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //8X0E: SHL  X 
-
-//instrucciones que usaba kk en el antiguo swich                                                                             
-void skkC0x07_FX07    (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //FX07: LD X,   DT                                               
-void skkC0x0A_FX0A    (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //FX0A: LD X,   K                                                
-void skkC0x15_FX15    (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //FX15: LD DT,  X                                                
-void skkC0x18_FX18    (struct machine_t*, word, word, byte,
-		       byte, byte, byte, byte); //FX18: LD ST,  X                                                
-void skkC0x1E_FX1E    (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //FX1E: ADD I,  X                                                
-
-void skkC0x29_FX29    (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //FX29: LD F,   X                                                
-void skkC0x33_FX33    (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //FX33: LD B,   X                                                
-void skkC0x55_FX55    (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //FX55: LD [I], X                                                
-void skkC0x65_FX65    (struct machine_t*, word, word, byte,
-                       byte, byte, byte, byte); //FX65: LD X,   [I]  
+/**
+ * Updates subsystems that depend on time. Several parts of the CHIP-8
+ * depend on a timer. Examples are the DT and ST countdown registers, whose
+ * values must countdown at a rate of 60 times per second. This function
+ * should be called regularly so that the systems are updated.
+ * @param delta amount of milliseconds since last call to function.
+ */
+void update_time(struct machine_t* cpu, int delta);
 
 #endif // CPU_H_
