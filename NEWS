@@ -1,14 +1,15 @@
 CHIP-8 news - History of user visible changes
-Copyright (C) 2015 Dani Rodríguez <danirod@outlook.com>
+Copyright (C) 2015-2016 Dani Rodríguez <danirod@outlook.com>
 
 This file is about relevant changes for CHIP-8 users. Developers: Check
 ChangeLog for an overview on relevant changes about the source code.
 
-Version 0.1.0 - 2015-03-09 by Dani Rodríguezd
+Version 0.1.1 - 2015-03-12
+* Emulator doesn't crash now on exit on Linux and MacOS X (issue #3)
+* Emulator now uses the default system graphics backend. For example, might
+  choose DirectX on Windows.
 
+Version 0.1.0 - 2015-03-09
 * First release with initial emulation capabilities.
-
 * All the opcodes for a standard CHIP-8 machine have been implemented.
-
 * Graphical capabilities for the CHIP-8 emulator are provided using SDL2.
-

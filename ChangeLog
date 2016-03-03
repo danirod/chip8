@@ -1,3 +1,30 @@
+2016-03-02  Dani Rodríguez  <danirod@outlook.com>
+
+	* src/cpu.c: fix failing opcodes.
+
+2016-02-25  Dani Rodríguez  <danirod@outlook.com>
+
+	* tests/: add support for unit testing with Check.
+	* src/cpu.c: organize CPU library in this file.
+	* src/sdl.c: organize SDL2 code in this file.
+	* src/chip8.c: organize client code in this file.
+	* src/chip8.c: added support for --version flag.
+
+2015-03-27  Dani Rodríguez  <danirod@outlook.com>
+
+	* src/chip8.c: Add support for getopt_long for passing options
+	to the program.
+
+2015-03-14  Dani Rodríguez  <danirod@outlook.com>
+
+	* src/chip8.c: Read hexadecimal files (ASCII files containing
+	only hexadecimal characters describing machine code for a
+	ROM).
+
+2015-03-13  Dani Rodríguez  <danirod@outlook.com>
+
+	* src/sound.c: Add support for sound and beeping.
+
 2015-03-12  Hugo Martin  <hugomartin89@gmail.com>
 
 	* src/sdl.c: Drop SDL_WINDOW_OPENGL so that SDL can decide
