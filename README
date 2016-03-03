@@ -2,10 +2,6 @@ chip8 is a CHIP-8 emulator developed in C using the SDL2 multimedia library.
 It emulates a standard CHIP-8 machine and implements all the opcodes that
 the specification provides.
 
-This emulator was initially developed by Dani Rodríguez, danirod at GitHub.
-It's developed as part of his live coding streaming series on YouTube where
-a program is developed in a live streaming.
-
 In the subdirectory 'examples' you may find a few public domain ROMs that
 can be emulated using this emulator as well as any other emulator you can
 find on the Internet.

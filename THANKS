@@ -1,34 +1,16 @@
 chip8 Thanks file
 
-This emulator is develoepd and maintained by Dani Rodríguez and maybe other
-authors described in AUTHORS file. However, many people have further
-contributed to this project by reporting problems, suggesting improovements
-or sending source code. Here is a list that I'm trying to keep up to date.
+This emulator is developed and maintained by the authors described in
+AUTHORS file. However, a few people have contributed with small patches
+to the project or reported problems in the past. To get information
+about contributors, please check out the Contributors page at the
+GitHub repository:
 
-* Hugo Martin <hugomartin89@gmail.com>
+    https://github.com/danirod/chip8/graphs/contributors
 
 Aditionally, since this project was built as part of a streaming series on
 my YouTube channel, I would like to thank to the audience that has been
-following this project since its birth. Here is a list with those people
-that have been following the project on YouTube. I try to keep this list
-up to date, but there are already so many hours or recorded video that I
-haven't completely reviewed all the comments so I may have skipped some
-names. Drop me a line if you miss your YouTube alias here. Also, if instead
-you don't want to see your YouTube alias here, drop me a line too and I'll
-remove your name from this list. This list is sorted alphabetically.
-
-* aitor killer.
-* ArcRoaR.
-* Iovictor29.
-* J D Gambin.
-* JoacoGamer100.
-* Luis Perez.
-* Marcos Sanchess
-* Matías.
-* nexus0709.
-* Omega36R.
-* Sergio CM.
-* Skillath.
-* zhexirox.
-
-Thanks to all of you.
+following this project since its birth. A few of the people that have been
+hanging out in the YouTube chat during the Season 1: aitor killer, ArcRoaR,
+Iovictor29, J D Gambin, JoacoGamer100, Luis Perez, Marcos Sanchess, Matías,
+nexus0709, Omega36R, Sergio CM, Skillath, zhexirox. Thanks to all of you.
