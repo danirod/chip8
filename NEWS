@@ -4,6 +4,11 @@ Copyright (C) 2015-2016 Dani Rodríguez <danirod@outlook.com>
 This file is about relevant changes for CHIP-8 users. Developers: Check
 ChangeLog for an overview on relevant changes about the source code.
 
+Version 0.1.2 - TBD
+* Added sound support.
+* Added more flags: --version and --usage.
+* Fixed a few bugs on some opcodes.
+
 Version 0.1.1 - 2015-03-12
 * Emulator doesn't crash now on exit on Linux and MacOS X (issue #3)
 * Emulator now uses the default system graphics backend. For example, might
