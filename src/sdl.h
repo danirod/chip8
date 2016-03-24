@@ -28,7 +28,7 @@
 
 #include "cpu.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 int init_context();
 

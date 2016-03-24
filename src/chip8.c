@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <SDL2/SDL.h>
 
 /* Flag set by '--hex' */
 static int use_hexloader;
