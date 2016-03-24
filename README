@@ -1,6 +1,26 @@
-chip8 is a CHIP-8 emulator developed in C using the SDL2 multimedia library.
-It emulates a standard CHIP-8 machine and implements all the opcodes that
-the specification provides.
+This is my own implementation of a CHIP-8 emulator made using C and the SDL2
+multimedia library. At the moment it is able to emulate a standard CHIP-8
+machine implementing all the opcodes provided by the specification.
+
+To emulate a binary ROM just provide the file as an argument:
+
+    $ chip8 ~/roms/TETRIS.bin
+
+To emulate an hexadecimal ROM you can use the `--hex` flag. Hexadecimal ROMs
+are files that only contains ASCII characters representing hexadecimal code.
+The ROM is compiled to binary during start up and executed as usual.
+
+Keyboard controls are designed to emulate the classic CHIP-8 controller. This
+is the mapping. On the left, the actual CHIP-8 keypad. On the right, the
+keys in emulator. It will be possible in future releases to change the keys.
+At the moment the only way for doing this is by manually patching the source
+code.
+
+    Keypad:      Emulation:
+    1 2 3 C      1 2 3 4
+    4 5 6 D      Q W E R
+    7 8 9 E      A S D F
+    A 0 B F      Z X C V
 
 In the subdirectory 'examples' you may find a few public domain ROMs that
 can be emulated using this emulator as well as any other emulator you can
