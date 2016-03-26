@@ -36,6 +36,7 @@ static struct option long_options[] = {
     { "help", no_argument, 0, 'h' },
     { "version", no_argument, 0, 'v' },
     { "hex", no_argument, &use_hexloader, 1 },
+    { "mute", no_argument, &use_mute, 1 },
     { 0, 0, 0, 0 }
 };
 
@@ -46,7 +47,11 @@ static struct option long_options[] = {
 static void
 usage(const char* name)
 {
-    printf("Usage: %s [-h | --help] [-v | --version] [--hex] <file>\n", name);
+    /* How many characters has Usage: %s? */
+    int pad = strnlen(name, 10) + 7; // 7 = "Usage: "
+
+    printf("Usage: %s [-h | --help] [-v | --version]\n", name);
+    printf("%*c [--hex] [--mute] <file>\n", pad, ' ');
 }
 
 static char
