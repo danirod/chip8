@@ -1,5 +1,17 @@
+2016-03-26  Dani Rodríguez  <danirod@outlook.com>
+
+	* src/libsdl.c: fixed package not building under Windows and
+	MacOS X because name conflict between our sdl.h and SDL2's
+	SDL.h (non-case sensitive file systems).
+	* src/chip8.c: doesn't crash when the PC has no sound device,
+	emulator will just run muted. (Bug#19)
+	* src/chip8.c: added --mute flag.
+	* Makefile.am: extra files are now copied to datadir.
+	* debian/: added Debian control files for Debian packaging.
+
 2016-03-24  Dani Rodríguez  <danirod@outlook.com>
 
+	* Version 0.1.2 released.
 	* src/sdl.h: fixed SDL.h header file inclusion.
 
 2016-03-02  Dani Rodríguez  <danirod@outlook.com>
@@ -31,6 +43,7 @@
 
 2015-03-12  Hugo Martin  <hugomartin89@gmail.com>
 
+	* Version 0.1.1 released.
 	* src/sdl.c: Drop SDL_WINDOW_OPENGL so that SDL can decide
 	the best graphics backend based on the user platform.
 	* src/sdl.c: Remove unrequired SDL_Surface.
