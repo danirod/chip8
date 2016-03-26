@@ -17,7 +17,7 @@
  */
 
 
-#include "sdl.h"
+#include "libsdl.h"
 
 #include <stdlib.h>
 #include <math.h>
