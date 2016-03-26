@@ -25,6 +25,8 @@
 
 int init_context();
 
+int try_enable_sound();
+
 void destroy_context();
 
 void render_display(struct machine_t* cpu);

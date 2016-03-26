@@ -28,6 +28,9 @@
 /* Flag set by '--hex' */
 static int use_hexloader;
 
+/* Flag set by '--mute' */
+static int use_mute;
+
 /* getopt parameter structure. */
 static struct option long_options[] = {
     { "help", no_argument, 0, 'h' },
@@ -186,19 +189,26 @@ main(int argc, char** argv)
         exit(1);
     }
 
-    /* Init emulator. */
-    srand(time(NULL));
-    init_machine(&mac);
-    mac.keydown = &is_key_down;
-    mac.speaker = &update_speaker;
-    load_data(argv[optind], &mac);
-
     /* Initialize SDL Context. */
     if (init_context()) {
         fprintf(stderr, "Error initializing SDL graphical context:\n");
         fprintf(stderr, "%s\n", SDL_GetError());
         return 1;
     }
+    if (!try_enable_sound()) {
+        fprintf(stderr, "Couldn't enable sound.\n");
+        use_mute = 1;
+    }
+
+    /* Init emulator. */
+    srand(time(NULL));
+    init_machine(&mac);
+    mac.keydown = &is_key_down;
+    if (!use_mute) {
+        mac.speaker = &update_speaker;
+    }
+    load_data(argv[optind], &mac);
+
     
     int last_ticks = SDL_GetTicks();
     int last_delta = 0, step_delta = 0, render_delta = 0;
