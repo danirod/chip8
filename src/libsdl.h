@@ -16,21 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * After checking out SDL2 source code it has been found that the include
- * guard for SDL2/SDL.h is named _SDL_H. Since coding conventions for this
- * project have stablished that the underscore should go AFTER the H, a
- * conflict may not happen. Let's just hope that SDL team never changes
- * idea. (Why would they?)
- */
-#ifndef SDL_H_
-#define SDL_H_
+#ifndef LIBSDL_H_
+#define LIBSDL_H_
 
 #include "cpu.h"
 
 #include <SDL.h>
 
 int init_context();
+
+int try_enable_sound();
 
 void destroy_context();
 
@@ -42,4 +37,4 @@ int is_key_down(char);
 
 void update_speaker(int);
 
-#endif // SDL_H_
+#endif // LIBSDL_H_

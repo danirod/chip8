@@ -4,6 +4,11 @@ Copyright (C) 2015-2016 Dani Rodríguez <danirod@outlook.com>
 This file is about relevant changes for CHIP-8 users. Developers: Check
 ChangeLog for an overview on relevant changes about the source code.
 
+Version 0.1.3 - 2016-03-28
+* Fixed: emulator won't crash if the PC has no sound device.
+* Added: --mute flag was added, forcing emulator to not buzz.
+* Added: support for DPKG distributions using a .deb file.
+
 Version 0.1.2 - 2016-03-24
 * Added sound support.
 * Added more flags: --version and --usage.

@@ -17,7 +17,7 @@
  */
 
 
-#include "sdl.h"
+#include "libsdl.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -166,14 +166,16 @@ init_context()
         clean_up();
         return 1;
     }
+    return 0;
+}
+
+int
+try_enable_sound()
+{
     spec = init_audiospec();
     device = SDL_OpenAudioDevice(NULL, 0, spec,
             NULL, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
-    if (device == 0) {
-        clean_up();
-        return 1;
-    }
-    return 0;
+    return (device != 0);
 }
 
 void
