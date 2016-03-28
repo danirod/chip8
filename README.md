@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/danirod/chip8.svg)](https://travis-ci.org/danirod/chip8)
+[![Coverage Status](https://coveralls.io/repos/github/danirod/chip8/badge.svg?branch=devel)](https://coveralls.io/github/danirod/chip8?branch=devel)
 [![GitHub tag](https://img.shields.io/github/tag/danirod/chip8.svg)](https://github.com/danirod/chip8/releases/latest)
 [![GitHub license](https://img.shields.io/badge/license-GPL3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0.html)
 
