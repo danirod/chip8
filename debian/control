@@ -1,0 +1,19 @@
+Source: chip8
+Section: games
+Priority: optional
+Maintainer: Dani Rodríguez <danirod@outlook.com>
+Build-Depends: debhelper (>= 8.0.0), autotools-dev, check, libsdl2-dev (>= 2.0.0)
+Standards-Version: 3.9.4
+Homepage: http://github.com/danirod/chip8
+Vcs-Git: git://github.com/danirod/chip8.git
+Vcs-Browser: http://github.com/danirod/chip8
+
+Package: chip8
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libsdl2-2.0-0 (>= 2.0.0)
+Description: Multiplatform CHIP-8 emulator
+ chip8 is a CHIP-8 emulator using the SDL2 emulation library.
+ It is able to emulate CHIP-8 ROMs in binary and hexadecimal
+ format. CHIP-8 is under development and not all features
+ have been implemented.
+

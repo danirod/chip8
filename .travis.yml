@@ -1,5 +1,11 @@
+# TODO: Migrate to container based builds
+
 sudo: required
 dist: trusty
+branches:
+    only:
+        - master
+        - devel
 
 language: c
 compiler: gcc
