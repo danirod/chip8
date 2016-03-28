@@ -8,6 +8,10 @@ AM_PROG_AR
 AC_PROG_CC
 AC_PROG_RANLIB
 
+# Coverages
+AC_ARG_ENABLE(gcov, ([--enable-gcov, "Enables gcov"]))
+AS_IF([test "x$enable_gcov" = "xyes"], CFLAGS="$CFLAGS -g -O0 -fprofile-arcs -ftest-coverage")
+
 # Check libraries
 AC_CHECK_LIB([m], [sinf], [], [AC_MSG_ERROR(["** ERROR: Math library not found **"])])
 # Check header files
