@@ -21,9 +21,13 @@
 extern Suite*
 create_chip8_opcodes_suite();
 
+extern Suite*
+create_superchip_opcodes_suite();
+
 int main(int argc, char** argv)
 {
     SRunner* runner = srunner_create(create_chip8_opcodes_suite());
+    srunner_add_suite(runner, create_superchip_opcodes_suite());
     srunner_run_all(runner, CK_VERBOSE);
     int failed = srunner_ntests_failed(runner);
     srunner_free(runner);

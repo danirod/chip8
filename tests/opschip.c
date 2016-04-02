@@ -53,7 +53,7 @@ START_TEST(test_scd)
 {
     /* Clear the screen, but put an horizontal line on Y = 0. */
     memset(cpu.screen, 0, 2048);
-    screen_fill_row(cpu.screen, 0);
+    screen_fill_row(&cpu, 0);
 
     /* Execute SCD 4. */
     cpu.pc = 0x200;
@@ -65,9 +65,9 @@ START_TEST(test_scd)
     for (int x = 0; x < 64; x++) {
         for (int y = 0; y < 64; y++) {
             if (y == 4) {
-                ck_assert_int_ne(0, screen_get_pixel(cpu.screen, x, y));
+                ck_assert_int_ne(0, screen_get_pixel(&cpu, x, y));
             } else {
-                ck_assert_int_eq(0, screen_get_pixel(cpu.screen, x, y));
+                ck_assert_int_eq(0, screen_get_pixel(&cpu, x, y));
             }
         }
     }
@@ -87,7 +87,7 @@ START_TEST(test_scr)
 {
     /* Clear the screen and put a vertical line on X = 0; */
     memset(cpu.screen, 0, 2048);
-    screen_fill_column(cpu.screen, 0);
+    screen_fill_column(&cpu, 0);
     
     /* Execute SCR. */
     cpu.pc = 0x200;
@@ -99,9 +99,9 @@ START_TEST(test_scr)
     for (int x = 0; x < 64; x++) {
         for (int y = 0; y < 64; y++) {
             if (x == 4) {
-                ck_assert_int_ne(0, screen_get_pixel(cpu.screen, x, y));
+                ck_assert_int_ne(0, screen_get_pixel(&cpu, x, y));
             } else {
-                ck_assert_int_eq(0, screen_get_pixel(cpu.screen, x, y));
+                ck_assert_int_eq(0, screen_get_pixel(&cpu, x, y));
             }
         }
     }
@@ -121,7 +121,7 @@ START_TEST(test_scl)
 {
     /* Clear the screen and put a vertical line on X = 0; */
     memset(cpu.screen, 0, 2048);
-    screen_fill_column(cpu.screen, 4);
+    screen_fill_column(&cpu, 4);
     
     /* Execute SCL. */
     cpu.pc = 0x200;
@@ -133,9 +133,9 @@ START_TEST(test_scl)
     for (int x = 0; x < 64; x++) {
         for (int y = 0; y < 64; y++) {
             if (x == 0) {
-                ck_assert_int_ne(0, screen_get_pixel(cpu.screen, x, y));
+                ck_assert_int_ne(0, screen_get_pixel(&cpu, x, y));
             } else {
-                ck_assert_int_eq(0, screen_get_pixel(cpu.screen, x, y));
+                ck_assert_int_eq(0, screen_get_pixel(&cpu, x, y));
             }
         }
     }
@@ -230,9 +230,9 @@ START_TEST(test_draw_esm)
     for (int y = 0; y < 64; y++) {
         for (int x = 0; x < 128; x++) {
             if (x < 16 && y < 16) {
-                ck_assert_int_ne(0, screen_get_pixel(cpu.screen, x, y));
+                ck_assert_int_ne(0, screen_get_pixel(&cpu, x, y));
             } else {
-                ck_assert_int_eq(0, screen_get_pixel(cpu.screen, x, y));
+                ck_assert_int_eq(0, screen_get_pixel(&cpu, x, y));
             }
         }
     }
@@ -246,4 +246,14 @@ tcase_draw_esm()
     TCase* tcase = setup_tcase("DRW ESM");
     tcase_add_test(tcase, test_draw_esm);
     return tcase;
+}
+
+Suite*
+create_superchip_opcodes_suite()
+{
+    Suite* suite = suite_create("SCHIP Opcodes");
+    suite_add_tcase(suite, tcase_exit());
+    suite_add_tcase(suite, tcase_high());
+    suite_add_tcase(suite, tcase_low());
+    return suite;
 }

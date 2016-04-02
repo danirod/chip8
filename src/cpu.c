@@ -67,6 +67,15 @@ nibble_0(struct machine_t* cpu, word opcode)
         if (cpu->sp > 0)
         cpu->pc = cpu->stack[(int) --cpu->sp];
         /* TODO: Should throw an error on stack underflow. */
+    } else if (opcode == 0x00fd) {
+        /* 00FD: EXIT - Stop emulator. */
+        cpu->exit = 1;
+    } else if (opcode == 0x00fe) {
+        /* 00FE: LOW - Disable extended screen mode. */
+        cpu->esm = 0;
+    } else if (opcode == 0x00ff) {
+        /* 00FF: HIGH - Enable extended scren mode. */
+        cpu->esm = 1;
     }
 }
 
@@ -388,7 +397,6 @@ screen_clear_column(struct machine_t* cpu, int column)
 void
 screen_fill_row(struct machine_t* cpu, int row)
 {
-    int colsiz = cpu->esm ? 64 : 32;
     int limit = cpu->esm ? 128 : 64;
     int rowsiz = limit;
     for (int x = 0; x < limit; x++) {
@@ -399,7 +407,6 @@ screen_fill_row(struct machine_t* cpu, int row)
 void
 screen_clear_row(struct machine_t* cpu, int row)
 {
-    int colsiz = cpu->esm ? 64 : 32;
     int limit = cpu->esm ? 128 : 64;
     int rowsiz = limit;
     for (int x = 0; x < limit; x++) {
@@ -410,7 +417,6 @@ screen_clear_row(struct machine_t* cpu, int row)
 int
 screen_get_pixel(struct machine_t* cpu, int row, int column)
 {
-    int colsiz = cpu->esm ? 64 : 32;
     int rowsiz = cpu->esm ? 128 : 64;
     return cpu->screen[rowsiz * row + column] != 0;
 }
@@ -418,7 +424,6 @@ screen_get_pixel(struct machine_t* cpu, int row, int column)
 void
 screen_set_pixel(struct machine_t* cpu, int row, int column)
 {
-    int colsiz = cpu->esm ? 64 : 32;
     int rowsiz = cpu->esm ? 128 : 64;
     cpu->screen[rowsiz * row + column] = 1;
 }
@@ -426,7 +431,6 @@ screen_set_pixel(struct machine_t* cpu, int row, int column)
 void
 screen_clear_pixel(struct machine_t* cpu, int row, int column)
 {
-    int colsiz = cpu->esm ? 64 : 32;
     int rowsiz = cpu->esm ? 128 : 64;
     cpu->screen[rowsiz * row + column] = 0;
 }
