@@ -364,3 +364,69 @@ update_time(struct machine_t* cpu, int delta)
         }
     }
 }
+
+void
+screen_fill_column(struct machine_t* cpu, int column)
+{
+    int rowsiz = cpu->esm ? 128 : 64;
+    int limit = cpu->esm ? 64 : 32;
+    for (int y = 0; y < limit; y++) {
+        cpu->screen[rowsiz * y + column] = 1;
+    }
+}
+
+void
+screen_clear_column(struct machine_t* cpu, int column)
+{
+    int rowsiz = cpu->esm ? 128 : 64;
+    int limit = cpu->esm ? 64 : 32;
+    for (int y = 0; y < limit; y++) {
+        cpu->screen[rowsiz * y + column] = 0;
+    }
+}
+
+void
+screen_fill_row(struct machine_t* cpu, int row)
+{
+    int colsiz = cpu->esm ? 64 : 32;
+    int limit = cpu->esm ? 128 : 64;
+    int rowsiz = limit;
+    for (int x = 0; x < limit; x++) {
+        cpu->screen[rowsiz * row + x] = 1;
+    }
+}
+
+void
+screen_clear_row(struct machine_t* cpu, int row)
+{
+    int colsiz = cpu->esm ? 64 : 32;
+    int limit = cpu->esm ? 128 : 64;
+    int rowsiz = limit;
+    for (int x = 0; x < limit; x++) {
+        cpu->screen[rowsiz * row + x] = 0;
+    }
+}
+
+int
+screen_get_pixel(struct machine_t* cpu, int row, int column)
+{
+    int colsiz = cpu->esm ? 64 : 32;
+    int rowsiz = cpu->esm ? 128 : 64;
+    return cpu->screen[rowsiz * row + column] != 0;
+}
+
+void
+screen_set_pixel(struct machine_t* cpu, int row, int column)
+{
+    int colsiz = cpu->esm ? 64 : 32;
+    int rowsiz = cpu->esm ? 128 : 64;
+    cpu->screen[rowsiz * row + column] = 1;
+}
+
+void
+screen_clear_pixel(struct machine_t* cpu, int row, int column)
+{
+    int colsiz = cpu->esm ? 64 : 32;
+    int rowsiz = cpu->esm ? 128 : 64;
+    cpu->screen[rowsiz * row + column] = 0;
+}

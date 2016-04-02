@@ -73,11 +73,14 @@ struct machine_t
     address i;                 // Special I register
     byte dt, st;             // Timers
 
-    char screen[2048];          // Screen bitmap
+    char screen[8192];          // Screen bitmap
     char wait_key;              // Key the CHIP-8 is idle waiting for.
 
     keyboard_poller_t keydown; // Keyboard poller
     speaker_handler_t speaker; // Speaker handler
+
+    int exit;                   // Should close the game.
+    int esm;                    // Is in Extended Screen Mode? 
 };
 
 /**
@@ -106,5 +109,19 @@ void step_machine(struct machine_t* cpu);
  * @param delta amount of milliseconds since last call to function.
  */
 void update_time(struct machine_t* cpu, int delta);
+
+void screen_fill_column(struct machine_t* cpu, int column);
+
+void screen_clear_column(struct machine_t* cpu, int column);
+
+void screen_fill_row(struct machine_t* cpu, int row);
+
+void screen_clear_row(struct machine_t* cpu, int row);
+
+int screen_get_pixel(struct machine_t* cpu, int row, int column);
+
+void screen_set_pixel(struct machine_t* cpu, int row, int column);
+
+void screen_clear_pixel(struct machine_t* cpu, int row, int column);
 
 #endif // CPU_H_
