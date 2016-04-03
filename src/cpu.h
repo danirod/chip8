@@ -81,6 +81,7 @@ struct machine_t
 
     int exit;                   // Should close the game.
     int esm;                    // Is in Extended Screen Mode? 
+    byte r[8];                  // R register set.
 };
 
 /**

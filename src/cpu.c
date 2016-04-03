@@ -59,7 +59,20 @@ typedef void (*opcode_table_t) (struct machine_t* cpu, word opcode);
 static void
 nibble_0(struct machine_t* cpu, word opcode)
 {
-    if (opcode == 0x00e0) {
+    if ((opcode & 0xFFF0) == 0x00c0)  {
+        /* 00CN: SCD - Scroll down. */
+        int rowsiz = cpu->esm ? 128 : 64;
+        int colsiz = cpu->esm ? 64 : 32;
+        int n = OPCODE_N(opcode);
+        int start_row = 0, last_row = colsiz - n - 1;
+        for (int row = last_row; row <= start_row; row--) {
+            for (int x = 0; x < rowsiz; x++) {
+                int from = row * rowsiz + x;
+                int to = (row + n) * rowsiz + x;
+                cpu->screen[to] = cpu->screen[from];
+            }
+        }
+    } else if (opcode == 0x00e0) {
         /* 00E0: CLS - Clear the screen. */
         memset(cpu->screen, 0, 2048);
     } else if (opcode == 0x00ee) {
@@ -221,12 +234,26 @@ nibble_D(struct machine_t* cpu, word opcode)
     /* DXYN: DRW - Draw a sprite on the screen at location V[X], V[Y]. */
     byte x = OPCODE_X(opcode), y = OPCODE_Y(opcode);
     cpu->v[15] = 0;
-    for (int j = 0; j < OPCODE_N(opcode); j++) {
+    if (cpu->esm && OPCODE_N(opcode) == 0) {
+        for (int j = 0; j < 16; j++) {
+            word sprite = cpu->mem[cpu->i + 2 * j];
+            for (int i = 0; i < 16; i++) {
+                int px = (cpu->v[x] + i) & 127;
+                int py = (cpu->v[y] + j) & 63;
+                int pos = 128 * py + px;
+                int pixel = (sprite & (1 << (15-i))) != 0;
+                cpu->v[15] |= (cpu->screen[pos] & pixel);
+                cpu->screen[pos] ^= pixel;
+            }
+        }
+    } else for (int j = 0; j < OPCODE_N(opcode); j++) {
         byte sprite = cpu->mem[cpu->i + j];
         for (int i = 0; i < 8; i++) {
-            int px = (cpu->v[x] + i) & 63;
-            int py = (cpu->v[y] + j) & 31;
-            int pos = 64 * py + px;
+            // Where to plot at.
+            int px = (cpu->v[x] + i) & (cpu->esm ? 127 : 63);
+            int py = (cpu->v[y] + j) & (cpu->esm ? 63 : 31);
+            int pos = (cpu->esm ? 128 : 64) * py + px;
+            // What to plot.
             int pixel = (sprite & (1 << (7-i))) != 0;
             cpu->v[15] |= (cpu->screen[pos] & pixel);
             cpu->screen[pos] ^= pixel;
@@ -277,6 +304,10 @@ nibble_F(struct machine_t* cpu, word opcode)
         /* FX29: LD - Set I to the address location for the sprite. */
         cpu->i = 0x50 + (cpu->v[OPCODE_X(opcode)] & 0xF) * 5;
         break;
+    case 0x30:
+        /* FX30: LD H, F - Load a 10 byte font glyph. */
+        cpu->i = 0x8200 + (cpu->v[OPCODE_X(opcode)] & 0xF) * 10;
+        break;
     case 0x33:
         /* FX33: Represent V[X] as BCD in I, I+1, I+2. */
         cpu->mem[cpu->i + 2] = cpu->v[OPCODE_X(opcode)] % 10;
@@ -293,6 +324,20 @@ nibble_F(struct machine_t* cpu, word opcode)
         /* FX65: LD - Load registers V[0] to V[x] from I. */
         for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
             cpu->v[reg] = cpu->mem[cpu->i + reg];
+        }
+        break;
+    case 0x75:
+        /* FX75: LD R, V - Store V[0]..V[X] in R registers. */
+        // FIXME: Should check that X <= 7.
+        for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
+            cpu->r[reg] = cpu->v[reg];
+        }
+        break;
+    case 0x85:
+        /* FX85: LD V, R - Load V[0]..V[X] in R registers. */
+        // FIXME: Should check that X <= 7.
+        for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
+            cpu->v[reg] = cpu->r[reg];
         }
         break;
     }
