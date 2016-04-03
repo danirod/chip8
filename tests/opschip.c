@@ -220,10 +220,9 @@ START_TEST(test_draw_esm)
 
     /* Set up machine. */
     cpu.esm = 1;
-    memcpy(cpu.screen, 0, 8192);
+    memset(cpu.screen, 0, sizeof (cpu.screen));
     cpu.pc = 0x200;
     put_opcode(0xD110, 0x200);
-
     step_machine(&cpu);
 
     /* Check that the sprite is drawn. */
@@ -236,7 +235,6 @@ START_TEST(test_draw_esm)
             }
         }
     }
-    ck_assert_int_eq(0x202, cpu.pc);
 }
 END_TEST
 
@@ -248,12 +246,127 @@ tcase_draw_esm()
     return tcase;
 }
 
+START_TEST(test_ld_hf)
+{
+    cpu.esm = 1;
+    put_opcode(0xF030, 0x200);
+    for (int r = 0; r < 16; r++) {
+        cpu.v[0] = r;
+        cpu.pc = 0x200;
+        step_machine(&cpu);
+        ck_assert_int_eq(0x8200 + r * 10, cpu.i);
+    }
+}
+END_TEST
+
+static TCase*
+tcase_ld_hf()
+{
+    TCase* tcase = setup_tcase("LD HF");
+    tcase_add_test(tcase, test_ld_hf);
+    return tcase;
+}
+
+START_TEST(test_ld_r_v)
+{
+    for (int rg = 0; rg < 8; rg++) {
+        cpu.v[rg] = rg * 3;
+        cpu.r[rg] = 0xFF;
+    }
+    cpu.pc = 0x200;
+    put_opcode(0xF775, 0x200);
+    step_machine(&cpu);
+    for (int rg = 0; rg < 8; rg++) {
+        ck_assert_int_eq(rg * 3, cpu.r[rg]);
+    }
+}
+END_TEST
+
+START_TEST(test_ld_r_v_partial)
+{
+    for (int rg = 0; rg < 8; rg++) {
+        cpu.v[rg] = rg * 3;
+        cpu.r[rg] = 0xFF;
+    }
+    cpu.pc = 0x200;
+    put_opcode(0xF475, 0x200);
+    step_machine(&cpu);
+    for (int rg = 0; rg < 8; rg++) {
+        if (rg <= 4) {
+            ck_assert_int_eq(rg * 3, cpu.r[rg]);
+        } else {
+            ck_assert_int_eq(0xFF, cpu.r[rg]);
+        }
+    }
+}
+END_TEST
+
+static TCase*
+tcase_ld_r_v()
+{
+    TCase* tcase = setup_tcase("LD R, V");
+    tcase_add_test(tcase, test_ld_r_v);
+    tcase_add_test(tcase, test_ld_r_v_partial);
+    return tcase;
+}
+
+START_TEST(test_ld_v_r)
+{
+    for (int rg = 0; rg < 8; rg++) {
+        cpu.r[rg] = rg * 3;
+        cpu.v[rg] = 0xFF;
+    }
+    cpu.pc = 0x200;
+    put_opcode(0xF785, 0x200);
+    step_machine(&cpu);
+    for (int rg = 0; rg < 8; rg++) {
+        ck_assert_int_eq(rg * 3, cpu.v[rg]);
+    }
+}
+END_TEST
+
+START_TEST(test_ld_v_r_partial)
+{
+    for (int rg = 0; rg < 8; rg++) {
+        cpu.r[rg] = rg * 3;
+        cpu.v[rg] = 0xFF;
+    }
+    cpu.pc = 0x200;
+    put_opcode(0xF485, 0x200);
+    step_machine(&cpu);
+    for (int rg = 0; rg < 8; rg++) {
+        if (rg <= 4) {
+            ck_assert_int_eq(rg * 3, cpu.v[rg]);
+        } else {
+            ck_assert_int_eq(0xFF, cpu.v[rg]);
+        }
+    }
+}
+END_TEST
+
+static TCase*
+tcase_ld_v_r()
+{
+    TCase* tcase = setup_tcase("LD V, R");
+    tcase_add_test(tcase, test_ld_v_r);
+    tcase_add_test(tcase, test_ld_v_r_partial);
+    return tcase;
+}
+
 Suite*
 create_superchip_opcodes_suite()
 {
     Suite* suite = suite_create("SCHIP Opcodes");
+    suite_add_tcase(suite, tcase_scd());
+    suite_add_tcase(suite, tcase_scr());
+    suite_add_tcase(suite, tcase_scl());
     suite_add_tcase(suite, tcase_exit());
     suite_add_tcase(suite, tcase_high());
     suite_add_tcase(suite, tcase_low());
+    suite_add_tcase(suite, tcase_draw_esm());
+    suite_add_tcase(suite, tcase_ld_hf());
+    suite_add_tcase(suite, tcase_ld_r_v());
+    suite_add_tcase(suite, tcase_ld_v_r());
     return suite;
 }
+
