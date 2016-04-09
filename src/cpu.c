@@ -65,7 +65,7 @@ nibble_0(struct machine_t* cpu, word opcode)
         int colsiz = cpu->esm ? 64 : 32;
         int n = OPCODE_N(opcode);
         int start_row = 0, last_row = colsiz - n - 1;
-        for (int row = last_row; row <= start_row; row--) {
+        for (int row = last_row; row >= start_row; row--) {
             for (int x = 0; x < rowsiz; x++) {
                 int from = row * rowsiz + x;
                 int to = (row + n) * rowsiz + x;
@@ -80,6 +80,30 @@ nibble_0(struct machine_t* cpu, word opcode)
         if (cpu->sp > 0)
         cpu->pc = cpu->stack[(int) --cpu->sp];
         /* TODO: Should throw an error on stack underflow. */
+    } else if (opcode == 0x00fb) {
+        /* 00FB: SCR - Scroll 4 pixels to the right. */
+        int rowsiz = cpu->esm ? 128 : 64;
+        int colsiz = cpu->esm ? 64 : 32;
+        int start_col = 0, last_col = rowsiz - 4 - 1;
+        for (int col = last_col; col >= start_col; col--) {
+            for (int y = 0; y < colsiz; y++) {
+                int from = y * rowsiz + col;
+                int to = y * rowsiz + (4 + col);
+                cpu->screen[to] = cpu->screen[from];
+            }
+        }
+    } else if (opcode == 0x00fc) {
+        /* 00FC: SCL - Scroll 4 pixels to the left. */
+        int rowsiz = cpu->esm ? 128 : 64;
+        int colsiz = cpu->esm ? 64 : 32;
+        int start_col = 4, last_col = rowsiz - 1;
+        for (int col = start_col; col <= last_col; col++) {
+            for (int y = 0; y < colsiz; y++) {
+                int from = y * rowsiz + col;
+                int to = y * rowsiz + (col - 4);
+                cpu->screen[to] = cpu->screen[from];
+            }
+        }
     } else if (opcode == 0x00fd) {
         /* 00FD: EXIT - Stop emulator. */
         cpu->exit = 1;

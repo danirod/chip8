@@ -62,12 +62,12 @@ START_TEST(test_scd)
 
     /* Test execution. */
     ck_assert_int_eq(0x202, cpu.pc);
-    for (int x = 0; x < 64; x++) {
-        for (int y = 0; y < 64; y++) {
-            if (y == 4) {
-                ck_assert_int_ne(0, screen_get_pixel(&cpu, x, y));
+    for (int row = 0; row < 32; row++) {
+        for (int col = 0; col < 64; col++) {
+            if (row == 0 || row == 4) {
+                ck_assert_int_ne(0, screen_get_pixel(&cpu, row, col));
             } else {
-                ck_assert_int_eq(0, screen_get_pixel(&cpu, x, y));
+                ck_assert_int_eq(0, screen_get_pixel(&cpu, row, col));
             }
         }
     }
@@ -96,12 +96,12 @@ START_TEST(test_scr)
 
     /* Test execution. */
     ck_assert_int_eq(0x202, cpu.pc);
-    for (int x = 0; x < 64; x++) {
-        for (int y = 0; y < 64; y++) {
-            if (x == 4) {
-                ck_assert_int_ne(0, screen_get_pixel(&cpu, x, y));
+    for (int row = 0; row < 32; row++) {
+        for (int col = 0; col < 64; col++) {
+            if (col == 0 || col == 4) {
+                ck_assert_int_ne(0, screen_get_pixel(&cpu, row, col));
             } else {
-                ck_assert_int_eq(0, screen_get_pixel(&cpu, x, y));
+                ck_assert_int_eq(0, screen_get_pixel(&cpu, row, col));
             }
         }
     }
@@ -130,12 +130,12 @@ START_TEST(test_scl)
 
     /* Test execution. */
     ck_assert_int_eq(0x202, cpu.pc);
-    for (int x = 0; x < 64; x++) {
-        for (int y = 0; y < 64; y++) {
-            if (x == 0) {
-                ck_assert_int_ne(0, screen_get_pixel(&cpu, x, y));
+    for (int row = 0; row < 32; row++) {
+        for (int col = 0; col < 64; col++) {
+            if (col == 0) {
+                ck_assert_int_ne(0, screen_get_pixel(&cpu, row, col));
             } else {
-                ck_assert_int_eq(0, screen_get_pixel(&cpu, x, y));
+                ck_assert_int_eq(0, screen_get_pixel(&cpu, row, col));
             }
         }
     }
