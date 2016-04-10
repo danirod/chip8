@@ -309,18 +309,19 @@ START_TEST(test_draw_esm)
 
     /* Set up machine. */
     cpu.esm = 1;
-    memset(cpu.screen, 0, sizeof (cpu.screen));
-    cpu.pc = 0x200;
+    memset(cpu.screen, 0, 8192);
+    cpu.i = 0x800;
     put_opcode(0xD110, 0x200);
     step_machine(&cpu);
 
     /* Check that the sprite is drawn. */
-    for (int y = 0; y < 64; y++) {
-        for (int x = 0; x < 128; x++) {
-            if (x < 16 && y < 16) {
-                ck_assert_int_ne(0, screen_get_pixel(&cpu, x, y));
+    ck_assert_int_eq(0x202, cpu.pc);
+    for (int row = 0; row < 64; row++) {
+        for (int col = 0; col < 128; col++) {
+            if (row < 16 && col < 16) {
+                ck_assert_int_ne(0, screen_get_pixel(&cpu, row, col));
             } else {
-                ck_assert_int_eq(0, screen_get_pixel(&cpu, x, y));
+                ck_assert_int_eq(0, screen_get_pixel(&cpu, row, col));
             }
         }
     }

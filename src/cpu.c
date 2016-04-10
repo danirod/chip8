@@ -260,11 +260,16 @@ nibble_D(struct machine_t* cpu, word opcode)
     cpu->v[15] = 0;
     if (cpu->esm && OPCODE_N(opcode) == 0) {
         for (int j = 0; j < 16; j++) {
-            word sprite = cpu->mem[cpu->i + 2 * j];
+            // Sprite to plot on this line.
+            byte hi = cpu->mem[cpu->i + 2 * j];
+            byte lo = cpu->mem[cpu->i + 2 * j + 1];
+            word sprite = hi << 8 | lo;
             for (int i = 0; i < 16; i++) {
+                // Where to plot at.
                 int px = (cpu->v[x] + i) & 127;
                 int py = (cpu->v[y] + j) & 63;
                 int pos = 128 * py + px;
+                // What to plot.
                 int pixel = (sprite & (1 << (15-i))) != 0;
                 cpu->v[15] |= (cpu->screen[pos] & pixel);
                 cpu->screen[pos] ^= pixel;
