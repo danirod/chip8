@@ -418,6 +418,9 @@ init_machine(struct machine_t* machine)
 void
 step_machine(struct machine_t* cpu)
 {
+    if (cpu->exit)
+        return;
+
     /* Are we waiting for a key press? */
     if (cpu->wait_key != -1 && cpu->keydown) {
         for (int i = 0; i < 16; i++) {
