@@ -19,6 +19,7 @@
 #include "cpu.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define OPCODE_NNN(opcode) (opcode & 0xFFF)
 #define OPCODE_KK(opcode) (opcode & 0xFF)
@@ -26,6 +27,21 @@
 #define OPCODE_X(opcode) ((opcode >> 8) & 0xF)
 #define OPCODE_Y(opcode) ((opcode >> 4) & 0xF)
 #define OPCODE_P(opcode) (opcode >> 12)
+
+static int is_debug = 0;
+
+static void
+log(const char* msg)
+{
+    if (is_debug) {
+        printf("MESSAGE: %s\n", msg);
+    }
+}
+
+void
+set_debug_mode(int debug_mode) {
+    is_debug = debug_mode;
+}
 
 /**
  * These are the bitmaps for the sprites that represent numbers.
@@ -395,9 +411,9 @@ init_machine(struct machine_t* machine)
     machine->pc = 0x200;
     machine->wait_key = -1;
     global_delta = 0;
+    log("Debug mode is enabled");
+    log("Machine has been initialized");
 }
-
-#include <stdio.h>
 
 void
 step_machine(struct machine_t* cpu)
@@ -422,6 +438,10 @@ step_machine(struct machine_t* cpu)
     /* Fetch next opcode. */
     word opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
     cpu->pc = (cpu->pc + 2) & 0xFFF;
+
+    if (is_debug) {
+        printf("Executing opcode 0x%x...\n", opcode);
+    }
 
     /* Execute the corresponding handler from the nibble table. */
     nibbles[OPCODE_P(opcode)](cpu, opcode);

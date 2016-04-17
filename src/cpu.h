@@ -125,4 +125,6 @@ void screen_set_pixel(struct machine_t* cpu, int row, int column);
 
 void screen_clear_pixel(struct machine_t* cpu, int row, int column);
 
+void set_debug_mode(int mode);
+
 #endif // CPU_H_
