@@ -19,6 +19,7 @@
 #include "cpu.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define OPCODE_NNN(opcode) (opcode & 0xFFF)
 #define OPCODE_KK(opcode) (opcode & 0xFF)
@@ -26,6 +27,21 @@
 #define OPCODE_X(opcode) ((opcode >> 8) & 0xF)
 #define OPCODE_Y(opcode) ((opcode >> 4) & 0xF)
 #define OPCODE_P(opcode) (opcode >> 12)
+
+static int is_debug = 0;
+
+static void
+log(const char* msg)
+{
+    if (is_debug) {
+        printf("MESSAGE: %s\n", msg);
+    }
+}
+
+void
+set_debug_mode(int debug_mode) {
+    is_debug = debug_mode;
+}
 
 /**
  * These are the bitmaps for the sprites that represent numbers.
@@ -59,7 +75,20 @@ typedef void (*opcode_table_t) (struct machine_t* cpu, word opcode);
 static void
 nibble_0(struct machine_t* cpu, word opcode)
 {
-    if (opcode == 0x00e0) {
+    if ((opcode & 0xFFF0) == 0x00c0)  {
+        /* 00CN: SCD - Scroll down. */
+        int rowsiz = cpu->esm ? 128 : 64;
+        int colsiz = cpu->esm ? 64 : 32;
+        int n = OPCODE_N(opcode);
+        int start_row = 0, last_row = colsiz - n - 1;
+        for (int row = last_row; row >= start_row; row--) {
+            for (int x = 0; x < rowsiz; x++) {
+                int from = row * rowsiz + x;
+                int to = (row + n) * rowsiz + x;
+                cpu->screen[to] = cpu->screen[from];
+            }
+        }
+    } else if (opcode == 0x00e0) {
         /* 00E0: CLS - Clear the screen. */
         memset(cpu->screen, 0, 2048);
     } else if (opcode == 0x00ee) {
@@ -67,6 +96,39 @@ nibble_0(struct machine_t* cpu, word opcode)
         if (cpu->sp > 0)
         cpu->pc = cpu->stack[(int) --cpu->sp];
         /* TODO: Should throw an error on stack underflow. */
+    } else if (opcode == 0x00fb) {
+        /* 00FB: SCR - Scroll 4 pixels to the right. */
+        int rowsiz = cpu->esm ? 128 : 64;
+        int colsiz = cpu->esm ? 64 : 32;
+        int start_col = 0, last_col = rowsiz - 4 - 1;
+        for (int col = last_col; col >= start_col; col--) {
+            for (int y = 0; y < colsiz; y++) {
+                int from = y * rowsiz + col;
+                int to = y * rowsiz + (4 + col);
+                cpu->screen[to] = cpu->screen[from];
+            }
+        }
+    } else if (opcode == 0x00fc) {
+        /* 00FC: SCL - Scroll 4 pixels to the left. */
+        int rowsiz = cpu->esm ? 128 : 64;
+        int colsiz = cpu->esm ? 64 : 32;
+        int start_col = 4, last_col = rowsiz - 1;
+        for (int col = start_col; col <= last_col; col++) {
+            for (int y = 0; y < colsiz; y++) {
+                int from = y * rowsiz + col;
+                int to = y * rowsiz + (col - 4);
+                cpu->screen[to] = cpu->screen[from];
+            }
+        }
+    } else if (opcode == 0x00fd) {
+        /* 00FD: EXIT - Stop emulator. */
+        cpu->exit = 1;
+    } else if (opcode == 0x00fe) {
+        /* 00FE: LOW - Disable extended screen mode. */
+        cpu->esm = 0;
+    } else if (opcode == 0x00ff) {
+        /* 00FF: HIGH - Enable extended scren mode. */
+        cpu->esm = 1;
     }
 }
 
@@ -212,12 +274,31 @@ nibble_D(struct machine_t* cpu, word opcode)
     /* DXYN: DRW - Draw a sprite on the screen at location V[X], V[Y]. */
     byte x = OPCODE_X(opcode), y = OPCODE_Y(opcode);
     cpu->v[15] = 0;
-    for (int j = 0; j < OPCODE_N(opcode); j++) {
+    if (cpu->esm && OPCODE_N(opcode) == 0) {
+        for (int j = 0; j < 16; j++) {
+            // Sprite to plot on this line.
+            byte hi = cpu->mem[cpu->i + 2 * j];
+            byte lo = cpu->mem[cpu->i + 2 * j + 1];
+            word sprite = hi << 8 | lo;
+            for (int i = 0; i < 16; i++) {
+                // Where to plot at.
+                int px = (cpu->v[x] + i) & 127;
+                int py = (cpu->v[y] + j) & 63;
+                int pos = 128 * py + px;
+                // What to plot.
+                int pixel = (sprite & (1 << (15-i))) != 0;
+                cpu->v[15] |= (cpu->screen[pos] & pixel);
+                cpu->screen[pos] ^= pixel;
+            }
+        }
+    } else for (int j = 0; j < OPCODE_N(opcode); j++) {
         byte sprite = cpu->mem[cpu->i + j];
         for (int i = 0; i < 8; i++) {
-            int px = (cpu->v[x] + i) & 63;
-            int py = (cpu->v[y] + j) & 31;
-            int pos = 64 * py + px;
+            // Where to plot at.
+            int px = (cpu->v[x] + i) & (cpu->esm ? 127 : 63);
+            int py = (cpu->v[y] + j) & (cpu->esm ? 63 : 31);
+            int pos = (cpu->esm ? 128 : 64) * py + px;
+            // What to plot.
             int pixel = (sprite & (1 << (7-i))) != 0;
             cpu->v[15] |= (cpu->screen[pos] & pixel);
             cpu->screen[pos] ^= pixel;
@@ -268,6 +349,10 @@ nibble_F(struct machine_t* cpu, word opcode)
         /* FX29: LD - Set I to the address location for the sprite. */
         cpu->i = 0x50 + (cpu->v[OPCODE_X(opcode)] & 0xF) * 5;
         break;
+    case 0x30:
+        /* FX30: LD H, F - Load a 10 byte font glyph. */
+        cpu->i = 0x8200 + (cpu->v[OPCODE_X(opcode)] & 0xF) * 10;
+        break;
     case 0x33:
         /* FX33: Represent V[X] as BCD in I, I+1, I+2. */
         cpu->mem[cpu->i + 2] = cpu->v[OPCODE_X(opcode)] % 10;
@@ -284,6 +369,20 @@ nibble_F(struct machine_t* cpu, word opcode)
         /* FX65: LD - Load registers V[0] to V[x] from I. */
         for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
             cpu->v[reg] = cpu->mem[cpu->i + reg];
+        }
+        break;
+    case 0x75:
+        /* FX75: LD R, V - Store V[0]..V[X] in R registers. */
+        // FIXME: Should check that X <= 7.
+        for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
+            cpu->r[reg] = cpu->v[reg];
+        }
+        break;
+    case 0x85:
+        /* FX85: LD V, R - Load V[0]..V[X] in R registers. */
+        // FIXME: Should check that X <= 7.
+        for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
+            cpu->v[reg] = cpu->r[reg];
         }
         break;
     }
@@ -312,13 +411,16 @@ init_machine(struct machine_t* machine)
     machine->pc = 0x200;
     machine->wait_key = -1;
     global_delta = 0;
+    log("Debug mode is enabled");
+    log("Machine has been initialized");
 }
-
-#include <stdio.h>
 
 void
 step_machine(struct machine_t* cpu)
 {
+    if (cpu->exit)
+        return;
+
     /* Are we waiting for a key press? */
     if (cpu->wait_key != -1 && cpu->keydown) {
         for (int i = 0; i < 16; i++) {
@@ -339,6 +441,10 @@ step_machine(struct machine_t* cpu)
     /* Fetch next opcode. */
     word opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
     cpu->pc = (cpu->pc + 2) & 0xFFF;
+
+    if (is_debug) {
+        printf("Executing opcode 0x%x...\n", opcode);
+    }
 
     /* Execute the corresponding handler from the nibble table. */
     nibbles[OPCODE_P(opcode)](cpu, opcode);
@@ -363,4 +469,65 @@ update_time(struct machine_t* cpu, int delta)
             }
         }
     }
+}
+
+void
+screen_fill_column(struct machine_t* cpu, int column)
+{
+    int rowsiz = cpu->esm ? 128 : 64;
+    int limit = cpu->esm ? 64 : 32;
+    for (int y = 0; y < limit; y++) {
+        cpu->screen[rowsiz * y + column] = 1;
+    }
+}
+
+void
+screen_clear_column(struct machine_t* cpu, int column)
+{
+    int rowsiz = cpu->esm ? 128 : 64;
+    int limit = cpu->esm ? 64 : 32;
+    for (int y = 0; y < limit; y++) {
+        cpu->screen[rowsiz * y + column] = 0;
+    }
+}
+
+void
+screen_fill_row(struct machine_t* cpu, int row)
+{
+    int limit = cpu->esm ? 128 : 64;
+    int rowsiz = limit;
+    for (int x = 0; x < limit; x++) {
+        cpu->screen[rowsiz * row + x] = 1;
+    }
+}
+
+void
+screen_clear_row(struct machine_t* cpu, int row)
+{
+    int limit = cpu->esm ? 128 : 64;
+    int rowsiz = limit;
+    for (int x = 0; x < limit; x++) {
+        cpu->screen[rowsiz * row + x] = 0;
+    }
+}
+
+int
+screen_get_pixel(struct machine_t* cpu, int row, int column)
+{
+    int rowsiz = cpu->esm ? 128 : 64;
+    return cpu->screen[rowsiz * row + column] != 0;
+}
+
+void
+screen_set_pixel(struct machine_t* cpu, int row, int column)
+{
+    int rowsiz = cpu->esm ? 128 : 64;
+    cpu->screen[rowsiz * row + column] = 1;
+}
+
+void
+screen_clear_pixel(struct machine_t* cpu, int row, int column)
+{
+    int rowsiz = cpu->esm ? 128 : 64;
+    cpu->screen[rowsiz * row + column] = 0;
 }
