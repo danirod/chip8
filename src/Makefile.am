@@ -9,5 +9,5 @@ chip8_CFLAGS = @SDL_CFLAGS@ -std=c99 -Wall
 chip8_LDADD = lib8.a @SDL_LIBS@
 
 mdisasm_SOURCES = mdisasm.c
-mdisasm_FLAGS = -std=c99 -Wall
+mdisasm_CFLAGS = -std=c99 -Wall
 
