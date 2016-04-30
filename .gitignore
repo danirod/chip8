@@ -27,3 +27,4 @@
 **/*.gcda
 
 src/chip8
+src/mdisasm
