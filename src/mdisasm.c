@@ -1,5 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>
+#include <string.h>
+#include "../config.h"
+
+#define APP_NAME "mdisasm"
 
 #define OPCODE_P(opcode) (opcode >> 12)
 #define OPCODE_X(opcode) ((opcode & 0xF00) >> 8)
@@ -7,6 +12,15 @@
 #define OPCODE_N(opcode) (opcode & 0xF)
 #define OPCODE_NNN(opcode) (opcode & 0xFFF)
 #define OPCODE_KK(opcode) (opcode & 0xFF)
+
+static char* output_mode = "full";
+
+static struct option long_options[] = {
+    { "help", no_argument, 0, 'h' },
+    { "version", no_argument, 0, 'v' },
+    { "output", optional_argument, 0, 0 },
+    { 0, 0, 0, 0 }
+};
 
 static void
 to_instruction_0(unsigned short opcode, char* out)
@@ -217,16 +231,56 @@ load_rom_file(const char* filename, unsigned char** buf)
     return length;
 }
 
+static void
+usage(const char *app_name)
+{
+    printf("Usage: %s [-h] [-v] [--output=full|minimal] <file>\n", app_name);
+}
+
 int
 main(int argc, char** argv)
 {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s [file name]\n", argv[0]);
-        return 1;
+    int indexpt, c;
+    while ((c = getopt_long(argc, argv, "hv", long_options, &indexpt)) != -1) {
+        switch (c) {
+            case 'h':
+                usage(argv[0]);
+                exit(0);
+            case 'v':
+                printf("%s %s\n", APP_NAME, PACKAGE_VERSION);
+                exit(0);
+                break;
+            case 0:
+                if (!strncmp(long_options[indexpt].name, "output", 7)) {
+                    output_mode = optarg;
+                    if (output_mode == NULL) {
+                        printf("--output: no option given.\n");
+                        exit(1);
+                    }
+                    if (strncmp(output_mode, "full", 5) &&
+                            strncmp(output_mode, "minimal", 8)) {
+                        printf("Unknown value %s. Use %s -h\n",
+                                output_mode, argv[0]);
+                        exit(1);
+                    }
+                    break;
+                }
+                printf("Unknown option: %s. Use %s -h\n",
+                        long_options[indexpt].name, argv[0]);
+                break;
+            default:
+                exit(1);
+        }
+    }
+    
+    /* If this is true, no file has been given. */
+    if (optind >= argc) {
+        fprintf(stderr, "%1$s: no file given. '%1$s -h' for help.\n", argv[0]);
+        exit(1);
     }
 
     unsigned char* buffer;
-    int length = load_rom_file(argv[1], &buffer);
+    int length = load_rom_file(argv[optind], &buffer);
     char output[20];
 
     for (int byte = 0; byte < length; byte += 2) {
