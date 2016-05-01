@@ -38,7 +38,7 @@ to_instruction_3(unsigned short opcode, char* out)
     snprintf(out, 20, "SE V[%x], %x", OPCODE_X(opcode), OPCODE_KK(opcode));
 }
 
-static void 
+static void
 to_instruction_4(unsigned short opcode, char* out)
 {
     snprintf(out, 20, "SNE V[%x], %x", OPCODE_X(opcode), OPCODE_KK(opcode));
@@ -59,7 +59,7 @@ to_instruction_6(unsigned short opcode, char* out)
 static void
 to_instruction_7(unsigned short opcode, char* out)
 {
-    snprintf(out, 20, "AND V[%x], %x", OPCODE_X(opcode), OPCODE_KK(opcode));
+    snprintf(out, 20, "ADD V[%x], %x", OPCODE_X(opcode), OPCODE_KK(opcode));
 }
 
 static void
@@ -125,7 +125,7 @@ static void
 to_instruction_D(unsigned short opcode, char* out)
 {
     int x = OPCODE_X(opcode), y = OPCODE_Y(opcode), n = OPCODE_N(opcode);
-    snprintf(out, 20, "DRW %x, %x, %x", x, y, n);
+    snprintf(out, 20, "DRW V[%x], V[%x], %x", x, y, n);
 }
 
 static void
