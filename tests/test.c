@@ -19,11 +19,19 @@
 #include <check.h>
 
 extern Suite*
-create_opcodes_suite();
+create_chip8_opcodes_suite();
+
+extern Suite*
+create_superchip_opcodes_suite();
+
+extern Suite*
+create_screen_suite();
 
 int main(int argc, char** argv)
 {
-    SRunner* runner = srunner_create(create_opcodes_suite());
+    SRunner* runner = srunner_create(create_chip8_opcodes_suite());
+    srunner_add_suite(runner, create_superchip_opcodes_suite());
+    srunner_add_suite(runner, create_screen_suite());
     srunner_run_all(runner, CK_VERBOSE);
     int failed = srunner_ntests_failed(runner);
     srunner_free(runner);

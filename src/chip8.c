@@ -23,6 +23,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 /* Flag set by '--hex' */
@@ -31,12 +32,16 @@ static int use_hexloader;
 /* Flag set by '--mute' */
 static int use_mute;
 
+/* Flag used by '--debug' */
+static int use_debug;
+
 /* getopt parameter structure. */
 static struct option long_options[] = {
     { "help", no_argument, 0, 'h' },
     { "version", no_argument, 0, 'v' },
     { "hex", no_argument, &use_hexloader, 1 },
     { "mute", no_argument, &use_mute, 1 },
+    { "debug", no_argument, &use_debug, 1 },
     { 0, 0, 0, 0 }
 };
 
@@ -207,6 +212,9 @@ main(int argc, char** argv)
 
     /* Init emulator. */
     srand(time(NULL));
+    if (use_debug) {
+        set_debug_mode(1);
+    }
     init_machine(&mac);
     mac.keydown = &is_key_down;
     if (!use_mute) {
