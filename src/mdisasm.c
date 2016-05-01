@@ -286,7 +286,11 @@ main(int argc, char** argv)
     for (int byte = 0; byte < length; byte += 2) {
         unsigned short opcode = buffer[byte] << 8 | buffer[byte + 1];
         to_instruction(opcode, output);
-        printf("%03x %04x %s\n", (0x200 + byte), opcode, output);
+        if (!strncmp(output_mode, "full", 5)) {
+            printf("%03x\t%04x\t%s\n", (0x200 + byte), opcode, output);
+        } else if (!strncmp(output_mode, "minimal", 8)) {
+            printf("%s\n", output);
+        }
     }
 
     free(buffer);
