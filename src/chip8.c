@@ -223,33 +223,29 @@ main(int argc, char** argv)
     load_data(argv[optind], &mac);
 
 
-    int last_ticks = SDL_GetTicks();
-    int last_delta = 0, step_delta = 0, render_delta = 0;
+    int time_before; // Ticks antes de ejecutar los ciclos.
+    int time_after; // Ticks después de ejecutar los ciclos.
+    int opcodes; // Contador de opcodes ejecutados.
+    int update_tick = SDL_GetTicks();
     while (!is_close_requested()) {
-        /* Update timers. */
-        last_delta = SDL_GetTicks() - last_ticks;
-        last_ticks = SDL_GetTicks();
-        step_delta += last_delta;
-        render_delta += last_delta;
 
-        /* Opcode execution: estimated 1000 opcodes/second. */
-        while (step_delta >= 1) {
+        /* Execute opcodes. */
+        time_before = SDL_GetTicks();
+        for (opcodes = 0; opcodes < 25; opcodes++) {
             step_machine(&mac);
-            step_delta--;
+        }
+        time_after = SDL_GetTicks();
+
+        /* If there is remaining time until next frame, sleep. */
+        if (time_after - time_before < 16) {
+            SDL_Delay(16 - (time_after - time_before));
         }
 
-        /* Update timed subsystems. */
-        update_time(&mac, last_delta);
-
-        /* Render frame every 1/60th of second. */
-        while (render_delta >= (1000 / 60)) {
-            render_display(&mac);
-            render_delta -= (1000 / 60);
-        }
-
-        /* Hack to reduce CPU usage :D
-         * Maybe not best way but it works!! */
-        SDL_Delay(1);
+        /* Update timed subsystems and render frame. */
+        int last_delta = SDL_GetTicks();
+        update_time(&mac, last_delta - update_tick);
+        render_display(&mac);
+        update_tick = last_delta;
     }
 
     /* Dispose SDL context. */
