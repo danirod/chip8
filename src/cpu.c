@@ -450,6 +450,11 @@ step_machine(struct machine_t* cpu)
     nibbles[OPCODE_P(opcode)](cpu, opcode);
 }
 
+/**
+ * Actualiza las estructuras que dependen del tiempo.
+ * @param cpu la cpu
+ * @param delta el número de milisegundos desde la última llamada al método
+ */
 void
 update_time(struct machine_t* cpu, int delta)
 {
