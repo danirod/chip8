@@ -35,6 +35,9 @@ static int use_mute;
 /* Flag used by '--debug' */
 static int use_debug;
 
+/* How many cycles to emulate per second. */
+static int cycles_per_second = 1500;
+
 /* getopt parameter structure. */
 static struct option long_options[] = {
     { "help", no_argument, 0, 'h' },
@@ -42,6 +45,7 @@ static struct option long_options[] = {
     { "hex", no_argument, &use_hexloader, 1 },
     { "mute", no_argument, &use_mute, 1 },
     { "debug", no_argument, &use_debug, 1 },
+    { "cycles", required_argument, 0, 'c' },
     { 0, 0, 0, 0 }
 };
 
@@ -172,7 +176,7 @@ main(int argc, char** argv)
 
     /* Parse parameters */
     int indexptr, c;
-    while ((c = getopt_long(argc, argv, "hv", long_options, &indexptr)) != -1) {
+    while ((c = getopt_long(argc, argv, "hvc:", long_options, &indexptr)) != -1) {
         switch (c) {
             case 'h':
                 usage(argv[0]);
@@ -180,6 +184,13 @@ main(int argc, char** argv)
             case 'v':
                 printf("%s\n", PACKAGE_STRING);
                 exit(0);
+                break;
+            case 'c':
+                cycles_per_second = atoi(optarg);
+                if (cycles_per_second < 60) {
+                    printf("Invalid cycles count.\n");
+                    exit(1);
+                }
                 break;
             case 0:
                 /* A long option is being processed, probably --hex. */
@@ -227,11 +238,12 @@ main(int argc, char** argv)
     int time_after; // Ticks después de ejecutar los ciclos.
     int opcodes; // Contador de opcodes ejecutados.
     int update_tick = SDL_GetTicks();
+    int cpframe = cycles_per_second / 60;
     while (!is_close_requested()) {
 
         /* Execute opcodes. */
         time_before = SDL_GetTicks();
-        for (opcodes = 0; opcodes < 25; opcodes++) {
+        for (opcodes = 0; opcodes < cpframe; opcodes++) {
             step_machine(&mac);
         }
         time_after = SDL_GetTicks();
