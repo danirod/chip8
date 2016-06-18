@@ -16,6 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * File: tests/opchip.c
+ * Description: Unit test related to CHIP-8 Opcodes.
+ */
+
 #include <check.h>
 #include <stdint.h>
 #include "../src/cpu.h"
@@ -779,9 +784,9 @@ tcase_ldix()
 }
 
 Suite*
-create_opcodes_suite()
+create_chip8_opcodes_suite()
 {
-    Suite* suite = suite_create("Opcodes");
+    Suite* suite = suite_create("CHIP-8 Opcodes");
     suite_add_tcase(suite, tcase_cls());
     suite_add_tcase(suite, tcase_rts());
     suite_add_tcase(suite, tcase_jmp());

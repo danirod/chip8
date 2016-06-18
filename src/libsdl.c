@@ -135,11 +135,28 @@ clean_up()
     SDL_Quit();
 }
 
+#define TEXTURE_PIXEL(x, y) (128 * (y) + (x))
+
 static void
-expand_screen(char* from, Uint32* to)
+expand_screen(char* from, Uint32* to, int use_hdpi)
 {
-    for (int i = 0; i < 2048; i++)
-        to[i] = ( from[i]) ? -1 : 0;
+    if (use_hdpi) {
+        for (int i = 0; i < 8192; i++)
+            to[i] = from[i] ? -1 : 0;
+    } else {
+        int x = 0, y = 0;
+        for (int i = 0; i < 2048; i++) {
+            Uint32 val = from[i] ? -1 : 0;
+            to[TEXTURE_PIXEL(2 * x + 0, 2 * y + 0)] = val;
+            to[TEXTURE_PIXEL(2 * x + 1, 2 * y + 0)] = val;
+            to[TEXTURE_PIXEL(2 * x + 0, 2 * y + 1)] = val;
+            to[TEXTURE_PIXEL(2 * x + 1, 2 * y + 1)] = val;
+            if (++x == 64) {
+                x = 0;
+                y++;
+            }
+        }
+    }
 }
 
 int
@@ -161,7 +178,7 @@ init_context()
         return 1;
     }
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
-            SDL_TEXTUREACCESS_STREAMING, 64, 32);
+            SDL_TEXTUREACCESS_STREAMING, 128, 64);
     if (texture == NULL) {
         clean_up();
         return 1;
@@ -204,7 +221,7 @@ render_display(struct machine_t* machine)
 
     /* Update SDL Texture with current data in CPU. */
     SDL_LockTexture(texture, NULL, &pixels, &pitch);
-    expand_screen(machine->screen, (Uint32 *) pixels);
+    expand_screen(machine->screen, (Uint32 *) pixels, machine->esm);
     SDL_UnlockTexture(texture);
 
     /* Render the texture. */

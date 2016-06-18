@@ -23,4 +23,7 @@
 **/*.o
 **/.deps/
 
+**/*.gcno
+**/*.gcda
+
 src/chip8

@@ -1,12 +1,16 @@
 # configure.ac
 
-AC_INIT([chip8], [0.1.3], [danirod@outlook.com])
+AC_INIT([chip8], [0.2.0], [danirod@outlook.com])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 # Check programs
 AM_PROG_AR
 AC_PROG_CC
 AC_PROG_RANLIB
+
+# Coverages
+AC_ARG_ENABLE(gcov, ([--enable-gcov, "Enables gcov"]))
+AS_IF([test "x$enable_gcov" = "xyes"], CFLAGS="$CFLAGS -g -O0 -fprofile-arcs -ftest-coverage")
 
 # Check libraries
 AC_CHECK_LIB([m], [sinf], [], [AC_MSG_ERROR(["** ERROR: Math library not found **"])])

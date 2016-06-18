@@ -23,6 +23,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 /* Flag set by '--hex' */
@@ -31,12 +32,16 @@ static int use_hexloader;
 /* Flag set by '--mute' */
 static int use_mute;
 
+/* Flag used by '--debug' */
+static int use_debug;
+
 /* getopt parameter structure. */
 static struct option long_options[] = {
     { "help", no_argument, 0, 'h' },
     { "version", no_argument, 0, 'v' },
     { "hex", no_argument, &use_hexloader, 1 },
     { "mute", no_argument, &use_mute, 1 },
+    { "debug", no_argument, &use_debug, 1 },
     { 0, 0, 0, 0 }
 };
 
@@ -207,6 +212,9 @@ main(int argc, char** argv)
 
     /* Init emulator. */
     srand(time(NULL));
+    if (use_debug) {
+        set_debug_mode(1);
+    }
     init_machine(&mac);
     mac.keydown = &is_key_down;
     if (!use_mute) {
@@ -214,7 +222,7 @@ main(int argc, char** argv)
     }
     load_data(argv[optind], &mac);
 
-    
+
     int last_ticks = SDL_GetTicks();
     int last_delta = 0, step_delta = 0, render_delta = 0;
     while (!is_close_requested()) {
@@ -223,21 +231,25 @@ main(int argc, char** argv)
         last_ticks = SDL_GetTicks();
         step_delta += last_delta;
         render_delta += last_delta;
-        
+
         /* Opcode execution: estimated 1000 opcodes/second. */
         while (step_delta >= 1) {
             step_machine(&mac);
             step_delta--;
         }
-        
+
         /* Update timed subsystems. */
         update_time(&mac, last_delta);
-        
+
         /* Render frame every 1/60th of second. */
         while (render_delta >= (1000 / 60)) {
             render_display(&mac);
             render_delta -= (1000 / 60);
         }
+
+        /* Hack to reduce CPU usage :D
+         * Maybe not best way but it works!! */
+        SDL_Delay(1);
     }
 
     /* Dispose SDL context. */

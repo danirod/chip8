@@ -13,6 +13,9 @@ compiler: gcc
 before_install:
 - sudo apt-get -qq update
 - sudo apt-get install -y libsdl2-dev check
+- pip install --user cpp-coveralls
 before_script: ./bootstrap
-script: "./configure && make && make check"
+script: "./configure --enable-gcov && make && make check"
+after_success:
+- coveralls --exclude tests --gcov-options '\-lp'
 after_failure: "cat tests/test-suite.log"
