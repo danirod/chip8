@@ -1,4 +1,4 @@
-ehip8 (0.2.0-1ubuntu1) xenial; urgency=medium
+chip8 (0.2.0-1ubuntu1) xenial; urgency=medium
 
   * Add support for SCHIP.
   * Fix CPU usage.
