@@ -1,3 +1,17 @@
+2016-05-18  Dani Rodríguez  <danirod@outlook.com>
+
+	* Version 0.2.0 released.
+
+2016-05-01  Hugo Martin  <hugomartin89@gmail.com>
+
+	* src/chip8.c: fix high CPU usage.
+
+2016-04-24  Dani Rodríguez  <danirod@outlook.com>
+
+	* src/chip8.c: added support for HD rendering (SCHIP).
+	* src/cpu.c: added opcodes for SUPER-CHIP.
+	* tests/: added tests for CHIP8 and SCHIP opcodes.
+
 2016-03-26  Dani Rodríguez  <danirod@outlook.com>
 
 	* src/libsdl.c: fixed package not building under Windows and

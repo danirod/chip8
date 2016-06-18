@@ -4,6 +4,10 @@ Copyright (C) 2015-2016 Dani Rodríguez <danirod@outlook.com>
 This file is about relevant changes for CHIP-8 users. Developers: Check
 ChangeLog for an overview on relevant changes about the source code.
 
+Version 0.2.0 - 2016-06-18
+* Added support for SUPER-CHIP opcodes.
+* Fixes high CPU usage.
+
 Version 0.1.3 - 2016-03-28
 * Fixed: emulator won't crash if the PC has no sound device.
 * Added: --mute flag was added, forcing emulator to not buzz.
