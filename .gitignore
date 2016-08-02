@@ -31,7 +31,7 @@
 **/*.gcda
 
 # Generated targets
-src/chip8
+src/chip8/chip8
 
 # Eclipse CDT
 .autotools

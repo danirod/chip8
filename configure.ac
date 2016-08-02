@@ -28,6 +28,7 @@ AC_CONFIG_FILES([
     Makefile
     src/Makefile
     src/lib8/Makefile
+    src/chip8/Makefile
     tests/Makefile
 ])
 AC_OUTPUT
