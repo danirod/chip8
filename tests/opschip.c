@@ -23,7 +23,7 @@
 
 #include <check.h>
 #include <stdint.h>
-#include "../src/cpu.h"
+#include <lib8/cpu.h>
 
 struct machine_t cpu;
 

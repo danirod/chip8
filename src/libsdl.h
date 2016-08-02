@@ -19,7 +19,7 @@
 #ifndef LIBSDL_H_
 #define LIBSDL_H_
 
-#include "cpu.h"
+#include "lib8/cpu.h"
 
 #include <SDL.h>
 

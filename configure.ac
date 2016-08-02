@@ -24,5 +24,10 @@ PKG_CHECK_MODULES([CHECK], [check >= 0.9.6])
 
 # Output
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
+AC_CONFIG_FILES([
+    Makefile
+    src/Makefile
+    src/lib8/Makefile
+    tests/Makefile
+])
 AC_OUTPUT

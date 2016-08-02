@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cpu.h"
+#include "lib8/cpu.h"
 #include "libsdl.h"
-#include "../config.h"
+#include <config.h>
 
 #include <getopt.h>
 #include <stdio.h>

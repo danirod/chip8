@@ -1,6 +1,4 @@
-noinst_LIBRARIES = lib8.a
-lib8_a_SOURCES = cpu.c cpu.h
-lib8_a_CFLAGS = -std=c99 -Wall
+SUBDIRS = lib8 .
 
 bin_PROGRAMS = chip8
 chip8_SOURCES = chip8.c libsdl.c libsdl.h
