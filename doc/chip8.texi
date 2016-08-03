@@ -23,13 +23,14 @@ in the section entitled "GNU Free Documentation License".
 @titlepage
 @title CHIP-8
 @subtitle Package manual
-@subtitle version v0.2.0
+@subtitle version @value{VERSION}
+@subtitle @value{UPDATED-MONTH}
 @author Dani Rodr@'iguez
 
 @c Print copyright information
 @page
 @vskip 0pt plus 1fill
-This is the user manual for version v0.2.0 of CHIP-8 software package.
+This is the user manual for version @value{VERSION} of CHIP-8 software package.
 To check for updates, please visit @uref{http://github.com/danirod/chip8}.
 
 @insertcopying
@@ -42,7 +43,7 @@ To check for updates, please visit @uref{http://github.com/danirod/chip8}.
 @ifnottex
 @node Top
 @top CHIP-8 Package manual
-This is the user manual for version v0.2.0 of CHIP-8 software package.
+This is the user manual for version @value{VERSION} of CHIP-8 software package.
 To check for updates, please visit @uref{http://github.com/danirod/chip8}.
 @end ifnottex
 

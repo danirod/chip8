@@ -38,7 +38,10 @@ src/chip8/chip8
 .cproject
 .project
 .settings/
+
+# Texinfo files
 doc/texinfo.tex
 doc/version.texi
 doc/stamp-vti
 doc/mdate-sh
+doc/chip8.info
