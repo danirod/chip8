@@ -1,5 +1,5 @@
 # Subdirectories
-SUBDIRS = src .
+SUBDIRS = src doc .
 if HAVE_CHECK
 SUBDIRS += tests
 endif

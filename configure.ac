@@ -30,6 +30,7 @@ AC_CONFIG_FILES([
     src/Makefile
     src/lib8/Makefile
     src/chip8/Makefile
+    doc/Makefile
     tests/Makefile
 ])
 AC_OUTPUT

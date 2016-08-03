@@ -1,0 +1,629 @@
+\input texinfo
+@settitle CHIP-8
+@setfilename chip8.info
+@documentencoding ISO-8859-1
+
+@include version.texi
+
+@c This file is part of CHIP-8: a virtual machine emulator for CHIP-8.
+@c Copyright (C) 2015-2016 Dani Rodr@'iguez <danirod@outlook.com>
+@c This is the manual for CHIP-8 made using texinfo.
+
+@copying
+Copyright @copyright{} 2015-2016 Dani Rodr@'iguez
+
+Permission is granted to copy, distribute and/or modify this document under the
+terms of the GNU Free Documentation License, Version 1.3 or any later version
+published by the Free Software Foundation; with no Invariant Sections, no
+Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included
+in the section entitled "GNU Free Documentation License".
+@end copying
+
+@c Print title page
+@titlepage
+@title CHIP-8
+@subtitle Package manual
+@subtitle version v0.2.0
+@author Dani Rodr@'iguez
+
+@c Print copyright information
+@page
+@vskip 0pt plus 1fill
+This is the user manual for version v0.2.0 of CHIP-8 software package.
+To check for updates, please visit @uref{http://github.com/danirod/chip8}.
+
+@insertcopying
+@end titlepage
+
+@c Print table of contents
+@contents
+
+@c Greeting on non TeX version.
+@ifnottex
+@node Top
+@top CHIP-8 Package manual
+This is the user manual for version v0.2.0 of CHIP-8 software package.
+To check for updates, please visit @uref{http://github.com/danirod/chip8}.
+@end ifnottex
+
+@menu
+* Introduction::  An introduction to CHIP-8
+* Emulator usage:: How to use the emulator
+* Emulated systems::  Platforms that can be executed
+* Compatible ROM formats:: ROM formats supported by the emulator.
+* Hacking the emulator:: How to modify the source code.
+* GNU Free Documentation License::
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+Welcome to @dfn{chip8}, my implementation of an emulator compatible with the
+CHIP-8 virtual machine. This software manual will bring you information about
+the emulator, how to run programs on the CHIP-8, how to use the emulator and
+some information for those interested on the insides of the CHIP-8 virtual
+machine and the format used by the ROMs that can be run from CHIP-8.
+
+@menu
+* Main features:: Some of the features of this emulator
+* Reporting bugs::  How to report bugs that you might find
+* Some history::  Some history on the CHIP-8 machine
+@end menu
+
+@node Main features
+@section Main features
+
+This implementation for the CHIP-8 virtual machine has, at this moment, the
+following features:
+
+@itemize @bullet
+@item Compatible with CHIP-8 and SUPERCHIP specifications.
+@item Modular, lightweight and fast.
+@item Multiplatform. Not only runs on GNU/Linux but also can be compiled on
+Microsoft@registeredsymbol{} Windows@registeredsymbol{} and
+Apple@registeredsymbol{} MacOS@registeredsymbol{} X.
+@item Virtually compatible with any machine by using the SDL2 library.
+@end itemize
+
+At this stage the emulator has not been finished. There are a few features
+that have not been implemented yet. There is a particular interest in adding
+the following features:
+
+@itemize @bullet
+@item Support for the MEGACHIP specification.
+@item User defined settings.
+@item Development tools for writing ROMs.
+@end itemize
+
+@node Reporting bugs
+@section Reporting bugs
+
+This tool has not been finished yet, and therefore there might be issues that
+haven't been reported or addressed yet. If during the execution of a program
+you find some bug that would like to report for having it fixed, you can report
+bugs to our issue tracker, at the canonical repository for our project. The
+URL is @uref{https://www.github.com/danirod/chip8}.
+
+Please, provide as much information as you can, including the operating system
+you are using, the version of the emulation software and if you can tell us
+which ROM were you playing, it would be better.
+
+@node Some history
+@section Some history
+
+CHIP-8 is an interpreted programming language and the specification for a
+virtual machine. As is, CHIP-8 is not a cmoputer, and there are no computers
+in the wild using this architecture, because it has limited resources. Instead
+there are computers with their own hardware, that have a virtual machine that
+allows the computer to decode and execute CHIP-8 programs.
+
+One of the first computers in add support for CHIP-8 as the COSMAC VIP, sold by
+RCA in the late 70s. This computer had a processor made too by RCA, with a
+speed of about 1.77 MHz and 2 kB of RAM memory. Inside the ROM, the operating
+system had the CHIP-8 interpreter that allowed the system to run games using
+the CHIP-8 language.
+
+However, there are more machines that have added support for CHIP-8, specially
+during the late 80s and early 90s, with the expansion of small computers such
+as graphical calculators. In fact, during this period and thanks to the first
+Internet communities that came around that time, many hobbyists could extend
+the original CHIP-8 specification, by making some changes that would make them
+run better on their machines, and sometimes even improving the original CHIP-8
+system, with features such as a bigger screen, more memory and even color.
+
+Thanks to being easy to understand, CHIP-8 is one of the greatest platforms
+for those people who want to start working in the world of emulators
+development, learning an easy architecture before starting bigger projects.
+
+@node Emulator usage
+@chapter Emulator usage
+
+@menu
+* Installing the emulator:: How to install the emulator
+* Running the emulator:: How to run the emulator
+* Using the emulator:: How to use the emulator
+* Stopping the emulation:: How to stop the emulator
+@end menu
+
+@node Installing the emulator
+@section Installing the emulator
+
+The main procedure for installing the emulator is to download the source
+code distribution, compiling it and installing it. Of course, there are
+aditional ways for obtaining the emulator, such as getting it from a binary
+distribution, for example, a @emph{.deb} file for Debian based systems or
+an @emph{.exe} application for Microsoft@registeredsymbol{}
+Windows@registeredsymbol{}.
+
+This emulator only depends on SDL2, because it is the multimedia library used
+for displaying the emulator output, reading keys from the keyboard and making
+the speaker buzz. After the dependencies are met, this CHIP-8 emulator can be
+installed by downloading the software release, extracting it somewhere, and
+then running @command{./configure && make} to compile it.
+
+Once compiled, it can be installed using @command{make install}. By default
+on a standard GNU/Linux system they would be installed into
+@file{/usr/local/bin}, @file{/usr/local/share/doc/chip8}, etc. On
+Apple@registeredsymbol{} MacOS@registeredsymbol{} X systems, these locations
+will be used as well. On Microsoft@registeredsymbol{}
+Windows@registeredsymbol{}, the location might actually change depending on
+how you build the software.
+
+If you are interested in checking that the software actually works as intended
+you can use the test suite provided with the source distribution. In order to
+run the tests you'll need to have @dfn{check} installed on your computer.
+Install the dependencies, and then after running @command{./configure && make}
+on the emulator package, run @command{make check} to run the test suite.
+After the execution, you will get a report on the test status.
+
+@node Running the emulator
+@section Running the emulator
+
+After the emulator has been downloaded it can be executed using the command
+@command{chip8 @var{file}}, where @var{file} is the path to a binary file
+that has the encoded data for a program that can run on the CHIP-8 virtual
+machine.
+
+As an example, to run the ROM @file{WIPEOFF.BIN} using the emulator, the
+following command can be used:
+
+@example
+$ chip8 WIPEOFF.BIN
+@end example
+
+assuming the game is on the current working directory. Some games can make use
+of the buzzer that the CHIP-8 computer has. The buzzer will sound through the
+speakers. If you want to avoid this behaviour you can run the game muted using
+the @command{--mute} option:
+
+@example
+$ chip8 --mute WIPEOFF.BIN
+@end example
+
+There are actually two kinds of ROMs: binary ROMs and hexadecimal ROMs. A
+binary ROM only has binary data and it is the most lightweight and fast way
+for running a ROM because the data can be placed in memory and executed
+instantaneously. This data can come from a dump for an actual CHIP-8 game or
+a game made for the CHIP-8 platform in any other way
+
+However, to make easier to people to create their own ROMs, there is an
+aditional way for running these ROMs and is using hexadecimal files. These
+files are plain text files only having the characters @code{0-9}, @code{A-F}
+and @code{a-f} encoded as either US-ASCII, UTF-8, Windows-1252 or a similar
+human readable text-enconding and can be modified using any kind of text
+editor that supports plain text. This format is slower to load since the
+file has to be converted to binary but it makes playing around faster.
+
+@node Using the emulator
+@section Using the emulator
+
+Once the emulator opens, it automatically starts executing the ROM contents.
+It is possible to control the emulator using the emulated keyboard. The CHIP-8
+specification sets a 16 keys keyboard using a 4x4 table having the following
+layout:
+
+@verbatim
+[1] [2] [3] [C]
+[4] [5] [6] [D]
+[7] [8] [9] [E]
+[A] [0] [B] [F]
+@end verbatim
+
+Using the current settings, that aren't modifiable by the user yet --although
+that is hoped for future releases, the assigned keys for the keyboard are
+mapped to the following keys on a traditional keyboard:
+
+@verbatim
+[1] [2] [3] [4]
+[Q] [W] [E] [R]
+[A] [S] [D] [F]
+[Z] [X] [C] [V]
+@end verbatim
+
+Which means that if you want to send the @kbd{5} key to your game you should
+press the @kbd{W} key in the emulator. Pressing @kbd{F} will trigger @kbd{E}
+key and similar.
+
+During the execution of a CHIP-8 ROM, some games may play sounds on the buzzer.
+As explained in @ref{Running the emulator}, this behaviour can be changed by
+using the option @option{--mute} when running the game.
+
+@node Stopping the emulation
+@section Stopping the emulation
+
+At this moment there is no way for pausing, resuming, resetting or stopping
+the emulation in this CHIP-8 emulator. The only way for stopping it is by
+exiting the emulator, something that you can do by pressing the Close button
+on the emulator window. This depends on your window manager or operating
+system.
+
+
+@node Emulated systems
+@chapter Emulated systems
+
+This CHIP-8 emulator is compatible with other kinds of systems. CHIP-8 is based
+in the origina lspecification written for the first computers using CHIP-8
+virtual machines inside, such as the COSMAC VIP. However, through the years,
+hobbyists interested in CHIP-8 emulation have developed emulators for other
+kinds of machines such as calculators or PCs, and they have extended the
+original specification for adding support to new features if the host hardware
+allowed so.
+
+In particular, this emulator is at the moment compatible with CHIP-8 and
+SUPERCHIP ROMs.
+
+@menu
+* CHIP-8 platform:: About the original CHIP-8 specification.
+* SUPERCHIP platform:: The SUPERCHIP extended specification.
+* MEGACHIP platform:: The MEGACHIP extended specification.
+@end menu
+
+@node CHIP-8 platform
+@section CHIP-8 platform
+
+This is the original platform for the CHIP-8 virtual machine. It is a simple
+architecture that has the following hardware resources.
+
+@itemize @bullet
+@item 4 kB of RAM memory.
+@item A register bank made of 16 registers, each one being 8 bits. These
+    registers are refered to as @code{V0}, @code{V1}, ..., @code{V9},
+    @code{VA}, @code{VB}, @code{VC}, @code{VD}, @code{VE} and @code{VF}.
+@item A stack that can hold 16 16-bit values.
+@item A stack pointer for pointing to the next free location in the stack.
+    As an example, if the stack pointer holds the value 5, that means
+    that the next value pushed to the stack will be in the position 5.
+    Pushing a value to the stack will increase the value of the stack pointer
+    by 1 to make it point to the next free location. Popping something will
+    decrease the value by 1, and then whatever is pointed by it, will be
+    transfered to the target destination.
+@item A special register named I that is used by some operations such as
+    painting to the screen.
+@end itemize
+
+The CHIP-8 screen is a rasterized 64 x 32 pixels display. It is monochrome
+and up to 2048 pixels can be represented. Usually these pixels will be
+black and white, but there is no official statement on this, which means
+that is possible for some systems to use different colors, such as green
+over black.
+
+CHIP-8 also has a 16 keys keyboard, as indicated in @ref{Using the emulator}.
+It also has a buzzer that can play sounds on a particular and single frequency.
+
+Talking about the interpreter, the CHIP-8 specification sets 34 instructions
+that can manipulate the data in memory, registers and stack, and interact with
+other IO devices such as sending images to the screen, reading keys from the
+keyboard or making the speaker buzz.
+
+
+@node SUPERCHIP platform
+@section SUPERCHIP platform
+
+SUPERCHIP is an extension over the original CHIP-8 specification that
+appeared in the early 90s in order to run CHIP-8 games in some graphical
+calculators. Thanks to the new hardware capabilities of the machine, this
+specification adds the following features to CHIP-8:
+
+@itemize @bullet
+@item A new graphical mode. By default the emulator runs in compatibility
+    mode in order to play old games that do not support the new mode, but
+    a new mode can be enabled that has a 128x64 monochrome display, with up
+    to 4 times more pixels to display.
+@item Instructions for scrolling the screen into different directions, making
+    faster some operations that rely on this, such as letting the user see
+    more parts of a big screen.
+@item Interaction with the underlying operating system that runs the
+    SUPERCHIP emulator. For the first time, it is possible to stop the
+    emulation without having to close the emulator. Plus, it is possible to
+    receive input from the operating system and send output to the operating
+    system using a new register bank called @emph{R}, whose values can be
+    provided before running the game, and requested after finishing the game.
+@end itemize
+
+There are 10 new instructions that cna be used in the programs. SUPERCHIP is
+still compatible with the original instruction set because these new opcodes
+are mapped to opcodes that would trigger on a crash on regular CHIP-8
+emulators. A classic ROM can still work because the original instruction
+set is, of course, provided.
+
+
+@node MEGACHIP platform
+@section MEGACHIP platform
+
+@strong{This mode is not implemented yet in this emulator, although their
+features makes this platform very appealing}.
+
+MEGACHIP is a new format born after the improvement of personal computers.
+Old limitations have no place on regular devices we have today, and therefore
+we can have better multimedia capabilities for running games.
+
+MEGACHIP adds support for the following features, that should be designed to
+be backwards compatible with CHIP-8 and SUPERCHIP formats:
+
+@itemize @bullet
+@item 256x192 raster resolution.
+@item For the first time, multiple colors using an indexed 256 color palette.
+@item Up to 32 MB of RAM.
+@item 8 bit digital sound.
+@end itemize
+
+There are 11 new instructions that are of course mapped to opcodes that neither
+CHIP-8 nor SUPERCHIP uses. Therefore, it is possible to run old CHIP-8 and
+SUPERCHIP games without side effects.
+
+
+@node Compatible ROM formats
+@chapter Compatible ROM formats
+
+In order to run the programs, it is required to have a ROM containing the
+instructions for the program. These instructions are executed by the virtual
+machine when the emulator starts.
+
+This CHIP-8 distribution comes with a set of public domain ROMs that can be
+executed in order to test the features of the emulator. These ROMs are in the
+@file{examples/} directory for the software distribution package, and once
+installed they are placed in @file{/usr/local/share/doc/chip8/roms}, although
+the exact location may change depending on where is the package installed in.
+
+The user can also create new ROMs using software tools or manually writing
+machine code into a binary file or an hexadecimal file. These files have to be
+provided as parameters when starting the emulator, as explained in
+@ref{Running the emulator}.
+
+However, there are two ways of storing the program instructions inside CHIP-8
+ROMs.
+
+@menu
+* Binary ROM files::  Binary files having only instructions.
+* Hexadecimal ROM files:: Text files having hexadecimal characters.
+* Corrupt ROM files::  What happens when a broken ROM is loaded.
+@end menu
+
+
+@node Binary ROM files
+@section Binary ROM files
+
+A binary ROM file is a file where every byte is a byte that must be placed
+in the RAM memory for the emulator when the game starts. In other words,
+the actual opcodes are encoded. Every 2 bytes in the ROM file can be translated
+to an actual instruction that the machine must run. (Or to some data such as
+an sprite).
+
+This is the fastest way for starting ROMs because no transformation is needed.
+As the emulator starts, the contents of the file are loaded in RAM memory
+if they fit, and the game is started. However, they need special software,
+such as hexadecimal editors, in order to see the contents, because they are
+binary and cannot be opened with regular text editors.
+
+As an example, let's suppose that we have a binary ROM with the following
+contents, that we might have got using an hexadecimal file tool such as
+@command{hexdump}:
+
+@example
+$ hexdump examples/PONG
+0000 6a 02 6b 0c 6c 3f 6d 0c a2 ea da b6 dc d6 6e 00
+0010 22 d4 66 03 68 02 60 60 f0 15 f0 07 30 00 12 1a
+@end example
+
+(more lines have been omitted for brevity)
+
+When this ROM is loaded into memory, the first instruction that will be
+executed will be @code{6A02}, as these are the first two bytes in the file.
+Next, the instruction @code{6B0C} will be executed, and then @code{6C3F},
+and so.
+
+Binary format is the most preferred way when working with dumps coming from
+external sources such as actual chips containing programs for old computers
+using the CHIP-8 format, because they represent the program as it was.
+
+
+@node Hexadecimal ROM files
+@section Hexadecimal ROM files
+
+An hexadecimal ROM file has the hexadecimal characters that are required for
+running a ROM file, organized in a text file that can be edited by the user
+in order to build their own programs and games.
+
+It is a file that makes use of a human readable character encoding such as
+US-ASCII, UTF-8 or Windows-1252 and that contains only characters in the ranges
+@emph{"0"} to @emph{"9"}, @emph{"A"} to @emph{"F"} and @emph{"a"} to @emph{"f}.
+These ranges would equal to the US-ASCII codes @code{0x30}-@code{0x39},
+@code{0x41}-@code{0x46} and @code{0x61}-@code{0x66}.
+
+The contents for an hexadecimal ROM file can be inspected using regular text
+editors, as an example:
+
+@example
+$ cat pong.hex
+6A026B0C6C3F6D0CA2EADAB6DCD66E0022D46603
+68026060F015F0073000121AC717770869FFA2F0
+D671A2EADAB6DCD66001E0A17BFE6004E0A17B02
+601F8B02DAB6600CE0A17DFE600DE0A17D02601F
+8D02DCD6A2F0D67186848794603F8602611F8712
+46021278463F1282471F69FF47006901D671122A
+@end example
+
+When an hexadecimal ROM file is given to the emulator, it must be processed.
+The hexadecimal ROM is converted to binary using the following method:
+
+@itemize @bullet
+@item It ignores any whitespace or line break.
+@item It reads the characters 2 by 2.
+@item For every pair of characters that should represent hexadecimal characters
+    (meaning that they should match the regular expresion
+    @code{([0-9A-Fa-f]@{2@})}, the following operation is made:
+    @code{(L, R) -> (L << 4) | R}, where L is the left hexadecimal character
+    once converted to binary and R is the right hexadecimal character once
+    converted to binary. This conversion is made by transforming every
+    character to the 4-bit digit they represent (@code{0x0} to @code{0xF}).
+@end itemize
+
+Although it has not been implemented yet, the following operations are
+planned:
+
+@itemize @bullet
+@item Ignore also tabs, in order to ignore any kind of whitespace.
+@item Allow comments in hexadecimal ROM files to make it easier to people to
+    know what code snippets should do.
+@end itemize
+
+
+@node Corrupt ROM files
+@section Corrupt ROM files
+
+This emulator has not been tested against fuzz testing, which means that it is
+not possible to know at this moment what should happen and how should the
+emulator behave when ROMs having corrupt instructions are execute.
+
+Fuzz testing is made by giving a random input to a program. As an example,
+randomly generating about 100 to 200 bytes of instructions, either in binary
+or hexadecimal way, and loading the contents in order to check what happens.
+
+Even though it has not been tested, the expected behaviour should be:
+
+@itemize @bullet
+@item Glitches on the screen.
+@item Weird behaviour of the program.
+@item Keyboard delays where they shouldn't be.
+@item Sound, if available, playing through the speaker.
+@end itemize
+
+Anyway, it is not expected that a corrupt ROM could harm the host machine in
+anyway, becuase none of the operations execcuted by the program interact with
+the underlying operating system in a way that could have side effects. On
+the other side, all the operations that work with memory buffers make enough
+tests to minimize the risk of a buffer overflow error.
+
+Despite all of that, this is something that hasn't been further tested.
+As stated by the license terms of this sfotware, available in the COPYING file,
+the emulator is provided AS IS, with no extra warranties.
+
+
+@node Hacking the emulator
+@appendix Hacking the emulator
+
+By downloading the software package including source code, any user can change
+how the emulator works to make it behave in a different way for their personal
+interest, as stated in the license terms for the software package.
+
+Some hints are given on the source code to make it easier to advanced people
+to modify the program. They should be specially useful for people that wants
+to contribute to the project by making their contributions public by patching
+the upstream source code via a Pull Request.
+
+@menu
+* Basic source code guidelines::  The most easy rules to follow.
+* Style guides:: Style guides when writing code for this project.
+* Opcodes table::  Clarification on how the opcodes table is made.
+@end menu
+
+
+@node Basic source code guidelines
+@section Basic source code guidelines
+
+This program is made using the C programming language. Although any port to
+a different programming language is good to have as a side project, this is
+the official language for this project. Therefore, any patch that attempts
+to change that is not welcome. The project is good using C; I don't want to
+change to C++, Python or whatever funky language is the trendiest at this
+moment.
+
+This program uses GNU Autotools for the build tool. Although GNU Autotools
+is not loved by everyone, this is the official tool for this project. So,
+any attempt to change the build tool to CMake, Gradle or regular Makefiles
+is not welcome.
+
+
+@node Style guides
+@section Style guides
+
+Although this is not an official GNU project, I make use of most of their
+style guidelines. Any contributor that wants to make public changes to the
+project must keep the following rules in mind.
+
+@itemize @bullet
+@item Line width is limited to 80 characters.
+@item Indent uses 4 spaces. No tabs, no 8 spaces, no 2 spaces.
+@item Functions should be defined by keeping the datatype in a different
+    line than the function name and parameters. Check the source code for
+    an example.
+@item Parameters and variables should have a easy to understand name. Some
+    short names are allowed when by context is clear, such as using @code{P},
+    @code{X}, @code{Y} or @code{K} for variables related to an opcode, because
+    these are the names given to the opcode structures. Long names when they
+    are not required is not pretty.
+@item Comments should be added when neccesary. Don't comment every line, but
+    don't add long chunks of code with no clear explanation of what they do.
+@item Long functions should be split in multiple small functions to make
+    the development easier, plus to make testing easier whenever there are
+    functions that should be tested.
+@end itemize
+
+
+@node Opcodes table
+@section Opcodes table
+
+In order to implement the opcodes, the following structure has been made.
+
+There is a common definition for every opcode function in the code, declared
+as a type named @code{opcode_table_t}, located as a private @emph{typedef}
+in the file @file{cpu.c} at the @dfn{lib8} subproject.
+
+After that, 16 functions are declared, every one compatible with that typedef.
+Their names are @code{nibble_0}, @code{nibble_1}, @code{nibble_2}... These
+functions have been declared as private functions using the same parameters:
+
+@verbatim
+static void
+nibble_0(struct machine_t* cpu, word opcode);
+
+static void
+nibble_1(struct machine_t* cpu, word opcode);
+
+static void
+nibble_2(struct machine_t* cpu, word opcode);
+@end verbatim
+
+Every one of these functions executes opcodes with a P value matching the one
+in the function name. As an example, the opcode @code{6104} would be executed
+by @code{nibble_6}, since @strong{P(6104) = 6}.
+
+Then, there is an array pointing to every opcode function named
+@code{nibbles[]}. These functions are sorted by P value, so that
+@code{nibbles[6]} will return a pointer to the function @code{nibble_6},
+and @code{nibbles[0xB]} will return a pointer to the function
+@code{nibble_B}.
+
+Thanks to this indirection, the processing logic for an opcode is easier
+since no big switch is required on code. Using this indirection, it is
+more straightforward to know which function should process each opcode.
+Although, some functions such as @code{nibble_6} will make use of switch
+anyway since there are multiple opcodes sharing the same P value.
+
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include fdl.texi
+
+
+@bye
