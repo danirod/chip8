@@ -1,0 +1,94 @@
+.TH chip8 6
+
+.SH NAME
+chip8 \- CHIP-8 emulator
+
+.SH SYNOPSIS
+.B chip8
+[\fB\-h\fR | \fB\-\-help\fR]
+[\fB\-v\fR | \fB\-\-version\fR]
+[\fB\-\-hex\fR]
+[\fB\-\-mute\fR]
+.IR file ...
+
+.SH DESCRIPTION
+.B chip8
+is another implementation of the CHIP-8 interpreted language and virtual
+machine. It is designed as a modular application, is small, lightweight,
+fast and multiplatform.
+
+When the application is started, the ROM data contained in the file
+.IR file
+is loaded and then executed by the emulated virtual machine.
+
+.SH OPTIONS
+.TP
+.B \-h ", " \-\-help
+Shows the help message listing possible flags for the program.
+
+.TP
+.B \-v ", " \-\-version
+Shows the installed version of the emulator.
+
+.TP
+.B \-\-hex
+If provided, will consider the given file as an
+.B hexadecimal file
+instead of a binary file. An
+.B hexadecimal file
+is only composed of hexadecimal characters encoded in a human encoding format
+such as US-ASCII or UTF-8, as an example the digits 0-9 and the letters A-F.
+The emulator won't distinct between uppercase A-F and lowercase a-f although
+the former is preferred. See below on section
+.B ROMs
+for more information on that.
+
+.TP
+.B \-\-mute
+If provided, the emulator won't make any sound, which is useful for people
+who don't want to play beeper sounds.
+
+.SH ROMs
+This emulator is compatible with CHIP-8 and SCHIP ROMs. A ROM is a file that
+contains the opcodes that the virtual machine will run. There are two types of
+ROMs:
+.B binary ROMs
+and
+.B hexadecimal ROMs\fR.
+
+By default ROM files are expected to be binary ROMs.
+.B Binary ROMs
+contains the program encoded as binary data. This means that every two bytes
+in the ROM file will be mapped to a particular opcode executed by the virtual
+machine (or to data used by some opcodes such as sprites). This is the default
+behaviour since it produces the smallest possible files, the fastest to load
+and the easiest to obtain (probably coming from a dump for an actual ROM chip).
+
+On the other side,
+.B hexadecimal ROMs
+are actually
+.B text files
+encoded as ASCII or UTF-8 where every character represents an hexadecimal
+character such as 0-9 or A-F. Note that because the file is encoded as ASCII
+or UTF-8 and because the characters are only hexadecimal to the human, the
+actual bytes stored in the file should always be in the range 0x30-0x39 (for
+\fI0\fR\-\fI9\fR characters), 0x41-0x46 (for \fIA\fR\-\fIF\fR characters) or
+0x61-0x66 (for \fIa\fR\-\fIf\fR characters). When the ROM is loaded, each two
+ASCII characters found in the file are converted to a single byte by
+translating the hexadecimal representation into actual bits. As an example, if
+the sequence \fI6F\fR is read (0x36 0x46), the emulator translates it to the
+byte 0x6F in the virtual memory.  Needless to say, this method requires more
+time to start up the emulation since the ROM needs to be translated to binary,
+although it will probably be the easiest to use for newcomers.
+
+.SH BUGS
+In case you find a bug, you can file it at our official issue tracker. The
+canonical URL for our issue tracker is
+<\fIhttp://github.com/danirod/chip8/issues\fR>.
+
+.SH AUTHORS
+This package is developed and maintained by
+Dani Rodriguez (<\fIdanirod@outlook.com\fR>).
+
+.SH COPYRIGHT
+Copyright (C) 2015-2016 Dani Rodriguez
