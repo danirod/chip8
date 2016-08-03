@@ -1,4 +1,8 @@
-SUBDIRS = src . tests
+# Subdirectories
+SUBDIRS = src .
+if HAVE_CHECK
+SUBDIRS += tests
+endif
 
 # Copy extra distribution files
 docdir = $(datadir)/doc/$(PACKAGE)

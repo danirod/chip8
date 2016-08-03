@@ -20,7 +20,8 @@ AC_CHECK_LIB([m], [sinf], [], [AC_MSG_ERROR(["** ERROR: Math library not found *
 
 # Check library functions
 AM_PATH_SDL2([2.0.0], :, AC_MSG_ERROR(["** ERROR: SDL 2.0 is required **"]))
-PKG_CHECK_MODULES([CHECK], [check >= 0.9.6])
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.6], [has_check=1], [has_check=0])
+AM_CONDITIONAL([HAVE_CHECK], [test "x$has_check" = "x1"])
 
 # Output
 AC_CONFIG_HEADERS([config.h])
