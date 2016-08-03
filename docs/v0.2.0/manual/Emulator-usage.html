@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2015-2016 Dani Rodri'guez
+
+Permission is granted to copy, distribute and/or modify this document under the
+terms of the GNU Free Documentation License, Version 1.3 or any later version
+published by the Free Software Foundation; with no Invariant Sections, no
+Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included
+in the section entitled "GNU Free Documentation License". -->
+<!-- Created by GNU Texinfo 6.1, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>CHIP-8: Emulator usage</title>
+
+<meta name="description" content="CHIP-8: Emulator usage">
+<meta name="keywords" content="CHIP-8: Emulator usage">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2any">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Emulated-systems.html#Emulated-systems" rel="next" title="Emulated systems">
+<link href="Introduction.html#Some-history" rel="prev" title="Some history">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Emulator-usage"></a>
+<div class="header">
+<p>
+Next: <a href="Emulated-systems.html#Emulated-systems" accesskey="n" rel="next">Emulated systems</a>, Previous: <a href="Introduction.html#Introduction" accesskey="p" rel="prev">Introduction</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Emulator-usage-1"></a>
+<h2 class="chapter">2 Emulator usage</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Installing-the-emulator" accesskey="1">Installing the emulator</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to install the emulator
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Running-the-emulator" accesskey="2">Running the emulator</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to run the emulator
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Using-the-emulator" accesskey="3">Using the emulator</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to use the emulator
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Stopping-the-emulation" accesskey="4">Stopping the emulation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to stop the emulator
+</td></tr>
+</table>
+
+<hr>
+<a name="Installing-the-emulator"></a>
+<div class="header">
+<p>
+Next: <a href="#Running-the-emulator" accesskey="n" rel="next">Running the emulator</a>, Up: <a href="#Emulator-usage" accesskey="u" rel="up">Emulator usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Installing-the-emulator-1"></a>
+<h3 class="section">2.1 Installing the emulator</h3>
+
+<p>The main procedure for installing the emulator is to download the source
+code distribution, compiling it and installing it. Of course, there are
+aditional ways for obtaining the emulator, such as getting it from a binary
+distribution, for example, a <em>.deb</em> file for Debian based systems or
+an <em>.exe</em> application for Microsoft&reg;
+Windows&reg;.
+</p>
+<p>This emulator only depends on SDL2, because it is the multimedia library used
+for displaying the emulator output, reading keys from the keyboard and making
+the speaker buzz. After the dependencies are met, this CHIP-8 emulator can be
+installed by downloading the software release, extracting it somewhere, and
+then running <code>./configure &amp;&amp; make</code> to compile it.
+</p>
+<p>Once compiled, it can be installed using <code>make install</code>. By default
+on a standard GNU/Linux system they would be installed into
+<samp>/usr/local/bin</samp>, <samp>/usr/local/share/doc/chip8</samp>, etc. On
+Apple&reg; MacOS&reg; X systems, these locations
+will be used as well. On Microsoft&reg;
+Windows&reg;, the location might actually change depending on
+how you build the software.
+</p>
+<p>If you are interested in checking that the software actually works as intended
+you can use the test suite provided with the source distribution. In order to
+run the tests you&rsquo;ll need to have <em>check</em> installed on your computer.
+Install the dependencies, and then after running <code>./configure &amp;&amp; make</code>
+on the emulator package, run <code>make check</code> to run the test suite.
+After the execution, you will get a report on the test status.
+</p>
+<hr>
+<a name="Running-the-emulator"></a>
+<div class="header">
+<p>
+Next: <a href="#Using-the-emulator" accesskey="n" rel="next">Using the emulator</a>, Previous: <a href="#Installing-the-emulator" accesskey="p" rel="prev">Installing the emulator</a>, Up: <a href="#Emulator-usage" accesskey="u" rel="up">Emulator usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Running-the-emulator-1"></a>
+<h3 class="section">2.2 Running the emulator</h3>
+
+<p>After the emulator has been downloaded it can be executed using the command
+<code>chip8 <var>file</var></code>, where <var>file</var> is the path to a binary file
+that has the encoded data for a program that can run on the CHIP-8 virtual
+machine.
+</p>
+<p>As an example, to run the ROM <samp>WIPEOFF.BIN</samp> using the emulator, the
+following command can be used:
+</p>
+<div class="example">
+<pre class="example">$ chip8 WIPEOFF.BIN
+</pre></div>
+
+<p>assuming the game is on the current working directory. Some games can make use
+of the buzzer that the CHIP-8 computer has. The buzzer will sound through the
+speakers. If you want to avoid this behaviour you can run the game muted using
+the <code>--mute</code> option:
+</p>
+<div class="example">
+<pre class="example">$ chip8 --mute WIPEOFF.BIN
+</pre></div>
+
+<p>There are actually two kinds of ROMs: binary ROMs and hexadecimal ROMs. A
+binary ROM only has binary data and it is the most lightweight and fast way
+for running a ROM because the data can be placed in memory and executed
+instantaneously. This data can come from a dump for an actual CHIP-8 game or
+a game made for the CHIP-8 platform in any other way
+</p>
+<p>However, to make easier to people to create their own ROMs, there is an
+aditional way for running these ROMs and is using hexadecimal files. These
+files are plain text files only having the characters <code>0-9</code>, <code>A-F</code>
+and <code>a-f</code> encoded as either US-ASCII, UTF-8, Windows-1252 or a similar
+human readable text-enconding and can be modified using any kind of text
+editor that supports plain text. This format is slower to load since the
+file has to be converted to binary but it makes playing around faster.
+</p>
+<hr>
+<a name="Using-the-emulator"></a>
+<div class="header">
+<p>
+Next: <a href="#Stopping-the-emulation" accesskey="n" rel="next">Stopping the emulation</a>, Previous: <a href="#Running-the-emulator" accesskey="p" rel="prev">Running the emulator</a>, Up: <a href="#Emulator-usage" accesskey="u" rel="up">Emulator usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Using-the-emulator-1"></a>
+<h3 class="section">2.3 Using the emulator</h3>
+
+<p>Once the emulator opens, it automatically starts executing the ROM contents.
+It is possible to control the emulator using the emulated keyboard. The CHIP-8
+specification sets a 16 keys keyboard using a 4x4 table having the following
+layout:
+</p>
+<pre class="verbatim">[1] [2] [3] [C]
+[4] [5] [6] [D]
+[7] [8] [9] [E]
+[A] [0] [B] [F]
+</pre>
+<p>Using the current settings, that aren&rsquo;t modifiable by the user yet &ndash;although
+that is hoped for future releases, the assigned keys for the keyboard are
+mapped to the following keys on a traditional keyboard:
+</p>
+<pre class="verbatim">[1] [2] [3] [4]
+[Q] [W] [E] [R]
+[A] [S] [D] [F]
+[Z] [X] [C] [V]
+</pre>
+<p>Which means that if you want to send the <kbd>5</kbd> key to your game you should
+press the <kbd>W</kbd> key in the emulator. Pressing <kbd>F</kbd> will trigger <kbd>E</kbd>
+key and similar.
+</p>
+<p>During the execution of a CHIP-8 ROM, some games may play sounds on the buzzer.
+As explained in <a href="#Running-the-emulator">Running the emulator</a>, this behaviour can be changed by
+using the option <samp>--mute</samp> when running the game.
+</p>
+<hr>
+<a name="Stopping-the-emulation"></a>
+<div class="header">
+<p>
+Previous: <a href="#Using-the-emulator" accesskey="p" rel="prev">Using the emulator</a>, Up: <a href="#Emulator-usage" accesskey="u" rel="up">Emulator usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Stopping-the-emulation-1"></a>
+<h3 class="section">2.4 Stopping the emulation</h3>
+
+<p>At this moment there is no way for pausing, resuming, resetting or stopping
+the emulation in this CHIP-8 emulator. The only way for stopping it is by
+exiting the emulator, something that you can do by pressing the Close button
+on the emulator window. This depends on your window manager or operating
+system.
+</p>
+
+<hr>
+<div class="header">
+<p>
+Previous: <a href="#Using-the-emulator" accesskey="p" rel="prev">Using the emulator</a>, Up: <a href="#Emulator-usage" accesskey="u" rel="up">Emulator usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

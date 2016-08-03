@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2015-2016 Dani Rodri'guez
+
+Permission is granted to copy, distribute and/or modify this document under the
+terms of the GNU Free Documentation License, Version 1.3 or any later version
+published by the Free Software Foundation; with no Invariant Sections, no
+Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included
+in the section entitled "GNU Free Documentation License". -->
+<!-- Created by GNU Texinfo 6.1, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>CHIP-8: Compatible ROM formats</title>
+
+<meta name="description" content="CHIP-8: Compatible ROM formats">
+<meta name="keywords" content="CHIP-8: Compatible ROM formats">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2any">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Hacking-the-emulator.html#Hacking-the-emulator" rel="next" title="Hacking the emulator">
+<link href="Emulated-systems.html#MEGACHIP-platform" rel="prev" title="MEGACHIP platform">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Compatible-ROM-formats"></a>
+<div class="header">
+<p>
+Next: <a href="Hacking-the-emulator.html#Hacking-the-emulator" accesskey="n" rel="next">Hacking the emulator</a>, Previous: <a href="Emulated-systems.html#Emulated-systems" accesskey="p" rel="prev">Emulated systems</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Compatible-ROM-formats-1"></a>
+<h2 class="chapter">4 Compatible ROM formats</h2>
+
+<p>In order to run the programs, it is required to have a ROM containing the
+instructions for the program. These instructions are executed by the virtual
+machine when the emulator starts.
+</p>
+<p>This CHIP-8 distribution comes with a set of public domain ROMs that can be
+executed in order to test the features of the emulator. These ROMs are in the
+<samp>examples/</samp> directory for the software distribution package, and once
+installed they are placed in <samp>/usr/local/share/doc/chip8/roms</samp>, although
+the exact location may change depending on where is the package installed in.
+</p>
+<p>The user can also create new ROMs using software tools or manually writing
+machine code into a binary file or an hexadecimal file. These files have to be
+provided as parameters when starting the emulator, as explained in
+<a href="Emulator-usage.html#Running-the-emulator">Running the emulator</a>.
+</p>
+<p>However, there are two ways of storing the program instructions inside CHIP-8
+ROMs.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Binary-ROM-files" accesskey="1">Binary ROM files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Binary files having only instructions.
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Hexadecimal-ROM-files" accesskey="2">Hexadecimal ROM files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Text files having hexadecimal characters.
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Corrupt-ROM-files" accesskey="3">Corrupt ROM files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">What happens when a broken ROM is loaded.
+</td></tr>
+</table>
+
+
+<hr>
+<a name="Binary-ROM-files"></a>
+<div class="header">
+<p>
+Next: <a href="#Hexadecimal-ROM-files" accesskey="n" rel="next">Hexadecimal ROM files</a>, Up: <a href="#Compatible-ROM-formats" accesskey="u" rel="up">Compatible ROM formats</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Binary-ROM-files-1"></a>
+<h3 class="section">4.1 Binary ROM files</h3>
+
+<p>A binary ROM file is a file where every byte is a byte that must be placed
+in the RAM memory for the emulator when the game starts. In other words,
+the actual opcodes are encoded. Every 2 bytes in the ROM file can be translated
+to an actual instruction that the machine must run. (Or to some data such as
+an sprite).
+</p>
+<p>This is the fastest way for starting ROMs because no transformation is needed.
+As the emulator starts, the contents of the file are loaded in RAM memory
+if they fit, and the game is started. However, they need special software,
+such as hexadecimal editors, in order to see the contents, because they are
+binary and cannot be opened with regular text editors.
+</p>
+<p>As an example, let&rsquo;s suppose that we have a binary ROM with the following
+contents, that we might have got using an hexadecimal file tool such as
+<code>hexdump</code>:
+</p>
+<div class="example">
+<pre class="example">$ hexdump examples/PONG
+0000 6a 02 6b 0c 6c 3f 6d 0c a2 ea da b6 dc d6 6e 00
+0010 22 d4 66 03 68 02 60 60 f0 15 f0 07 30 00 12 1a
+</pre></div>
+
+<p>(more lines have been omitted for brevity)
+</p>
+<p>When this ROM is loaded into memory, the first instruction that will be
+executed will be <code>6A02</code>, as these are the first two bytes in the file.
+Next, the instruction <code>6B0C</code> will be executed, and then <code>6C3F</code>,
+and so.
+</p>
+<p>Binary format is the most preferred way when working with dumps coming from
+external sources such as actual chips containing programs for old computers
+using the CHIP-8 format, because they represent the program as it was.
+</p>
+
+<hr>
+<a name="Hexadecimal-ROM-files"></a>
+<div class="header">
+<p>
+Next: <a href="#Corrupt-ROM-files" accesskey="n" rel="next">Corrupt ROM files</a>, Previous: <a href="#Binary-ROM-files" accesskey="p" rel="prev">Binary ROM files</a>, Up: <a href="#Compatible-ROM-formats" accesskey="u" rel="up">Compatible ROM formats</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Hexadecimal-ROM-files-1"></a>
+<h3 class="section">4.2 Hexadecimal ROM files</h3>
+
+<p>An hexadecimal ROM file has the hexadecimal characters that are required for
+running a ROM file, organized in a text file that can be edited by the user
+in order to build their own programs and games.
+</p>
+<p>It is a file that makes use of a human readable character encoding such as
+US-ASCII, UTF-8 or Windows-1252 and that contains only characters in the ranges
+<em>&quot;0&quot;</em> to <em>&quot;9&quot;</em>, <em>&quot;A&quot;</em> to <em>&quot;F&quot;</em> and <em>&quot;a&quot;</em> to <em>&quot;f</em>.
+These ranges would equal to the US-ASCII codes <code>0x30</code>-<code>0x39</code>,
+<code>0x41</code>-<code>0x46</code> and <code>0x61</code>-<code>0x66</code>.
+</p>
+<p>The contents for an hexadecimal ROM file can be inspected using regular text
+editors, as an example:
+</p>
+<div class="example">
+<pre class="example">$ cat pong.hex
+6A026B0C6C3F6D0CA2EADAB6DCD66E0022D46603
+68026060F015F0073000121AC717770869FFA2F0
+D671A2EADAB6DCD66001E0A17BFE6004E0A17B02
+601F8B02DAB6600CE0A17DFE600DE0A17D02601F
+8D02DCD6A2F0D67186848794603F8602611F8712
+46021278463F1282471F69FF47006901D671122A
+</pre></div>
+
+<p>When an hexadecimal ROM file is given to the emulator, it must be processed.
+The hexadecimal ROM is converted to binary using the following method:
+</p>
+<ul>
+<li> It ignores any whitespace or line break.
+</li><li> It reads the characters 2 by 2.
+</li><li> For every pair of characters that should represent hexadecimal characters
+    (meaning that they should match the regular expresion
+    <code>([0-9A-Fa-f]{2})</code>, the following operation is made:
+    <code>(L, R) -&gt; (L &lt;&lt; 4) | R</code>, where L is the left hexadecimal character
+    once converted to binary and R is the right hexadecimal character once
+    converted to binary. This conversion is made by transforming every
+    character to the 4-bit digit they represent (<code>0x0</code> to <code>0xF</code>).
+</li></ul>
+
+<p>Although it has not been implemented yet, the following operations are
+planned:
+</p>
+<ul>
+<li> Ignore also tabs, in order to ignore any kind of whitespace.
+</li><li> Allow comments in hexadecimal ROM files to make it easier to people to
+    know what code snippets should do.
+</li></ul>
+
+
+<hr>
+<a name="Corrupt-ROM-files"></a>
+<div class="header">
+<p>
+Previous: <a href="#Hexadecimal-ROM-files" accesskey="p" rel="prev">Hexadecimal ROM files</a>, Up: <a href="#Compatible-ROM-formats" accesskey="u" rel="up">Compatible ROM formats</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Corrupt-ROM-files-1"></a>
+<h3 class="section">4.3 Corrupt ROM files</h3>
+
+<p>This emulator has not been tested against fuzz testing, which means that it is
+not possible to know at this moment what should happen and how should the
+emulator behave when ROMs having corrupt instructions are execute.
+</p>
+<p>Fuzz testing is made by giving a random input to a program. As an example,
+randomly generating about 100 to 200 bytes of instructions, either in binary
+or hexadecimal way, and loading the contents in order to check what happens.
+</p>
+<p>Even though it has not been tested, the expected behaviour should be:
+</p>
+<ul>
+<li> Glitches on the screen.
+</li><li> Weird behaviour of the program.
+</li><li> Keyboard delays where they shouldn&rsquo;t be.
+</li><li> Sound, if available, playing through the speaker.
+</li></ul>
+
+<p>Anyway, it is not expected that a corrupt ROM could harm the host machine in
+anyway, becuase none of the operations execcuted by the program interact with
+the underlying operating system in a way that could have side effects. On
+the other side, all the operations that work with memory buffers make enough
+tests to minimize the risk of a buffer overflow error.
+</p>
+<p>Despite all of that, this is something that hasn&rsquo;t been further tested.
+As stated by the license terms of this sfotware, available in the COPYING file,
+the emulator is provided AS IS, with no extra warranties.
+</p>
+
+<hr>
+<div class="header">
+<p>
+Previous: <a href="#Hexadecimal-ROM-files" accesskey="p" rel="prev">Hexadecimal ROM files</a>, Up: <a href="#Compatible-ROM-formats" accesskey="u" rel="up">Compatible ROM formats</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

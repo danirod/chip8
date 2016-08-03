@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2015-2016 Dani Rodri'guez
+
+Permission is granted to copy, distribute and/or modify this document under the
+terms of the GNU Free Documentation License, Version 1.3 or any later version
+published by the Free Software Foundation; with no Invariant Sections, no
+Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included
+in the section entitled "GNU Free Documentation License". -->
+<!-- Created by GNU Texinfo 6.1, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>CHIP-8: Emulated systems</title>
+
+<meta name="description" content="CHIP-8: Emulated systems">
+<meta name="keywords" content="CHIP-8: Emulated systems">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2any">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Compatible-ROM-formats.html#Compatible-ROM-formats" rel="next" title="Compatible ROM formats">
+<link href="Emulator-usage.html#Stopping-the-emulation" rel="prev" title="Stopping the emulation">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Emulated-systems"></a>
+<div class="header">
+<p>
+Next: <a href="Compatible-ROM-formats.html#Compatible-ROM-formats" accesskey="n" rel="next">Compatible ROM formats</a>, Previous: <a href="Emulator-usage.html#Emulator-usage" accesskey="p" rel="prev">Emulator usage</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Emulated-systems-1"></a>
+<h2 class="chapter">3 Emulated systems</h2>
+
+<p>This CHIP-8 emulator is compatible with other kinds of systems. CHIP-8 is based
+in the origina lspecification written for the first computers using CHIP-8
+virtual machines inside, such as the COSMAC VIP. However, through the years,
+hobbyists interested in CHIP-8 emulation have developed emulators for other
+kinds of machines such as calculators or PCs, and they have extended the
+original specification for adding support to new features if the host hardware
+allowed so.
+</p>
+<p>In particular, this emulator is at the moment compatible with CHIP-8 and
+SUPERCHIP ROMs.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#CHIP_002d8-platform" accesskey="1">CHIP-8 platform</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">About the original CHIP-8 specification.
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#SUPERCHIP-platform" accesskey="2">SUPERCHIP platform</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">The SUPERCHIP extended specification.
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#MEGACHIP-platform" accesskey="3">MEGACHIP platform</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">The MEGACHIP extended specification.
+</td></tr>
+</table>
+
+<hr>
+<a name="CHIP_002d8-platform"></a>
+<div class="header">
+<p>
+Next: <a href="#SUPERCHIP-platform" accesskey="n" rel="next">SUPERCHIP platform</a>, Up: <a href="#Emulated-systems" accesskey="u" rel="up">Emulated systems</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="CHIP_002d8-platform-1"></a>
+<h3 class="section">3.1 CHIP-8 platform</h3>
+
+<p>This is the original platform for the CHIP-8 virtual machine. It is a simple
+architecture that has the following hardware resources.
+</p>
+<ul>
+<li> 4 kB of RAM memory.
+</li><li> A register bank made of 16 registers, each one being 8 bits. These
+    registers are refered to as <code>V0</code>, <code>V1</code>, ..., <code>V9</code>,
+    <code>VA</code>, <code>VB</code>, <code>VC</code>, <code>VD</code>, <code>VE</code> and <code>VF</code>.
+</li><li> A stack that can hold 16 16-bit values.
+</li><li> A stack pointer for pointing to the next free location in the stack.
+    As an example, if the stack pointer holds the value 5, that means
+    that the next value pushed to the stack will be in the position 5.
+    Pushing a value to the stack will increase the value of the stack pointer
+    by 1 to make it point to the next free location. Popping something will
+    decrease the value by 1, and then whatever is pointed by it, will be
+    transfered to the target destination.
+</li><li> A special register named I that is used by some operations such as
+    painting to the screen.
+</li></ul>
+
+<p>The CHIP-8 screen is a rasterized 64 x 32 pixels display. It is monochrome
+and up to 2048 pixels can be represented. Usually these pixels will be
+black and white, but there is no official statement on this, which means
+that is possible for some systems to use different colors, such as green
+over black.
+</p>
+<p>CHIP-8 also has a 16 keys keyboard, as indicated in <a href="Emulator-usage.html#Using-the-emulator">Using the emulator</a>.
+It also has a buzzer that can play sounds on a particular and single frequency.
+</p>
+<p>Talking about the interpreter, the CHIP-8 specification sets 34 instructions
+that can manipulate the data in memory, registers and stack, and interact with
+other IO devices such as sending images to the screen, reading keys from the
+keyboard or making the speaker buzz.
+</p>
+
+<hr>
+<a name="SUPERCHIP-platform"></a>
+<div class="header">
+<p>
+Next: <a href="#MEGACHIP-platform" accesskey="n" rel="next">MEGACHIP platform</a>, Previous: <a href="#CHIP_002d8-platform" accesskey="p" rel="prev">CHIP-8 platform</a>, Up: <a href="#Emulated-systems" accesskey="u" rel="up">Emulated systems</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="SUPERCHIP-platform-1"></a>
+<h3 class="section">3.2 SUPERCHIP platform</h3>
+
+<p>SUPERCHIP is an extension over the original CHIP-8 specification that
+appeared in the early 90s in order to run CHIP-8 games in some graphical
+calculators. Thanks to the new hardware capabilities of the machine, this
+specification adds the following features to CHIP-8:
+</p>
+<ul>
+<li> A new graphical mode. By default the emulator runs in compatibility
+    mode in order to play old games that do not support the new mode, but
+    a new mode can be enabled that has a 128x64 monochrome display, with up
+    to 4 times more pixels to display.
+</li><li> Instructions for scrolling the screen into different directions, making
+    faster some operations that rely on this, such as letting the user see
+    more parts of a big screen.
+</li><li> Interaction with the underlying operating system that runs the
+    SUPERCHIP emulator. For the first time, it is possible to stop the
+    emulation without having to close the emulator. Plus, it is possible to
+    receive input from the operating system and send output to the operating
+    system using a new register bank called <em>R</em>, whose values can be
+    provided before running the game, and requested after finishing the game.
+</li></ul>
+
+<p>There are 10 new instructions that cna be used in the programs. SUPERCHIP is
+still compatible with the original instruction set because these new opcodes
+are mapped to opcodes that would trigger on a crash on regular CHIP-8
+emulators. A classic ROM can still work because the original instruction
+set is, of course, provided.
+</p>
+
+<hr>
+<a name="MEGACHIP-platform"></a>
+<div class="header">
+<p>
+Previous: <a href="#SUPERCHIP-platform" accesskey="p" rel="prev">SUPERCHIP platform</a>, Up: <a href="#Emulated-systems" accesskey="u" rel="up">Emulated systems</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="MEGACHIP-platform-1"></a>
+<h3 class="section">3.3 MEGACHIP platform</h3>
+
+<p><strong>This mode is not implemented yet in this emulator, although their
+features makes this platform very appealing</strong>.
+</p>
+<p>MEGACHIP is a new format born after the improvement of personal computers.
+Old limitations have no place on regular devices we have today, and therefore
+we can have better multimedia capabilities for running games.
+</p>
+<p>MEGACHIP adds support for the following features, that should be designed to
+be backwards compatible with CHIP-8 and SUPERCHIP formats:
+</p>
+<ul>
+<li> 256x192 raster resolution.
+</li><li> For the first time, multiple colors using an indexed 256 color palette.
+</li><li> Up to 32 MB of RAM.
+</li><li> 8 bit digital sound.
+</li></ul>
+
+<p>There are 11 new instructions that are of course mapped to opcodes that neither
+CHIP-8 nor SUPERCHIP uses. Therefore, it is possible to run old CHIP-8 and
+SUPERCHIP games without side effects.
+</p>
+
+<hr>
+<div class="header">
+<p>
+Previous: <a href="#SUPERCHIP-platform" accesskey="p" rel="prev">SUPERCHIP platform</a>, Up: <a href="#Emulated-systems" accesskey="u" rel="up">Emulated systems</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

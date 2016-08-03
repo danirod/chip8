@@ -1,93 +1,185 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <title>CHIP-8 by danirod</title>
-  </head>
+ 
+<head>
+<meta charset='utf-8'>
 
-  <body>
-    <div id="container">
-      <div class="inner">
+<title>CHIP-8 by danirod</title>
+<meta name="description" content="chip8 is a CHIP-8 emulator developed in C using the SDL2 multimedia library. It emulates a standard CHIP-8 machine and implements all the opcodes that the specification provides">
 
-        <header>
-          <h1>CHIP-8</h1>
-          <h2>A multiplatform CHIP-8 emulator done in SDL.</h2>
-        </header>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="style.css" media="screen">
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/danirod/chip8/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/danirod/chip8/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/danirod/chip8" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
+<meta property="og:title" content="CHIP-8 by danirod">
+<meta property="og:type" content="website">
+<meta property="og:url" content="http://www.danirod.es/chip8">
 
-        <hr>
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@danirod93">
+<meta name="twitter:title" content="CHIP-8 by danirod">
+<meta name="twitter:description" content="A multiplatform CHIP-8 emulator done in SDL.">
 
-        <section id="main_content">
-          <p>chip8 is a CHIP-8 emulator developed in C using the SDL2 multimedia library.
+</head>
+
+<body>
+
+<header>
+  <h1>CHIP-8</h1>
+  <h2>A multiplatform CHIP-8 emulator done in SDL.</h2>
+</header>
+
+<p>chip8 is a CHIP-8 emulator developed in C using the SDL2 multimedia library.
 It emulates a standard CHIP-8 machine and implements all the opcodes that
 the specification provides.</p>
 
-<h2>
-<a id="screenshots" class="anchor" href="#screenshots" aria-hidden="true"><span class="octicon octicon-link"></span></a>Screenshots</h2>
-
-<p>GNU/Linux:</p>
-
-<p><img src="https://cloud.githubusercontent.com/assets/1568690/6553708/eba9d684-c653-11e4-867d-4f8406897809.png" alt="CHIP-8 Emulator on GNU/Linux"></p>
-
-<p>MacOS X:</p>
-
-<p><img src="https://cloud.githubusercontent.com/assets/1568690/6557044/50d409b2-c672-11e4-9b28-f84546f00612.png" alt="CHIP-8 Emulator on MacOS X"></p>
-
-<p>Windows:</p>
-
-<p><img src="https://cloud.githubusercontent.com/assets/1568690/6553101/5e538d44-c64d-11e4-9efd-cfef8e9a9a3b.png" alt="CHIP-8 Emulator on Windows"></p>
-
-<h2>
-<a id="files" class="anchor" href="#files" aria-hidden="true"><span class="octicon octicon-link"></span></a>Files</h2>
-
-<p>In the subdirectory 'examples' you may find a few public domain ROMs that
-can be emulated using this emulator as well as any other emulator you can
-find on the Internet.</p>
-
-<ul>
-<li>See 'COPYING' for copying conditions.</li>
-<li>See 'INSTALL' for compilation and installation instructions.</li>
-<li>See 'NEWS' for a list of changes in latest releases.</li>
-<li>See 'ChangeLog' for a list of technical changes in the source code.</li>
-<li>See 'BUGS' for information on how to report bugs you may find.</li>
-<li>See 'AUTHORS' for the names of the maintainers of the source code.</li>
-<li>See 'THANKS' for a list of contributors and other helpful people.</li>
+<ul id="menu">
+<li><a href="#downloads">Downloads</a></li>
+<li><a href="#screenshots">Screenshots</a></li>
+<li><a href="#support">Support</a></li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#license">License</a></li>
 </ul>
 
-<h2>
-<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h2>
+<h2 id="downloads">Downloads</h2>
 
-<p>In order to compile this project you will need to have SDL 2.0 headers and
-libraries in your machine. Head to <a href="http://www.libsdl.org">www.libsdl.org</a> to get those in case
-you still haven't got them or get them using your package manager if your
-operating system has any.</p>
+<p>Latest version available is: <strong>v0.2.0</strong>.
+<a href="https://github.com/danirod/chip8/releases/download/0.2.0/chip8-v0.2.0.tar.gz">Download tarball</a>.</p>
 
-<h2>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+<h3>Binary distributions for other platforms</h3>
+<ul>
+  <li>PPA for Ubuntu based systems (16.04, 14.04 support is comming soon):
+    <a href="https://launchpad.net/~danirod/+archive/ubuntu/chip8" target="_blank">ppa:danirod/chip8</a>.
+    After adding the PPA, update your system and install the package <code>chip8</code>.
+  </li>
+  <li>.deb file for Debian based systems:
+    <a href="https://github.com/danirod/chip8/releases/download/0.2.0/chip8_0.2.0-1ubuntu1_i386.deb">i386</a>, 
+    <a href="https://github.com/danirod/chip8/releases/download/0.2.0/chip8_0.2.0-1ubuntu1_amd64.deb">amd64</a>.
+  </li>
+  <li>Win32 release for Microsoft &reg; Windows &reg; systems (<strong>v0.1.3, OUTDATED</strong>):
+    <a href="https://github.com/danirod/chip8/releases/download/0.1.3/chip8-0.1.3-win32.zip">Download here</a>.
+  </li>
+</ul>
 
-<p>This project is available under a GNU General Public License v3 license. See COPYING for copying conditions.</p>
-        </section>
+<p><a href="https://github.com/danirod/chip8/releases/tag/0.2.0">Changelog and other releases</a>.</p>
 
-        <footer>
-          CHIP-8 is maintained by <a href="https://github.com/danirod">danirod</a><br>
-          This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
+<h3>Getting development releases</h3>
 
-        
-      </div>
-    </div>
-  </body>
+<p>You can get the develompent release using Git. You can clone the following URL:
+  <a href="https://github.com/danirod/chip8.git" target="_blank">https://github.com/danirod/chip8.git</a>.</p>
+  
+<p>CHIP-8 stores the sources at <a href="https://github.com/danirod/chip8.git">GitHub</a>,
+  although there are mirrors at <a href="https://bitbucket.org/danirod/chip8" target="_blank">BitBucket</a>
+  and <a href="https://gitlab.com/danirod/chip8" target="_blank">GitLab</a>.
+</p>
+
+<p>The development branch is <code>devel</code> (although that should be the default one that gets
+checkout'd when you clone the repository on your machine).</p>
+
+<h3>Old source code releases</h3>
+<ul>
+  <li>
+    <a href="https://github.com/danirod/chip8/releases/download/0.1.3/chip8-0.1.3.tar.gz">CHIP-8 v0.1.3, released 2016-03-28</a>.
+    <a href="https://github.com/danirod/chip8/releases/tag/0.1.3" target="_blank">Changelog and binary releases</a>.
+  </li>
+  <li>
+    <a href="https://github.com/danirod/chip8/releases/download/0.1.2/chip8-0.1.2.tar.gz">CHIP-8 v0.1.2, released 2016-03-24</a>.
+    <a href="https://github.com/danirod/chip8/releases/tag/0.1.2" target="_blank">Changelog and binary releases</a>.
+  </li>
+  <li>
+    <a href="https://github.com/danirod/chip8/releases/download/0.1.1/chip8-0.1.1-src.tar.gz">CHIP-8 v0.1.1, released 2015-03-11</a>.
+    <a href="https://github.com/danirod/chip8/releases/tag/0.1.1" target="_blank">Changelog and binary releases</a>.
+  </li>
+  <li>
+    <a href="https://github.com/danirod/chip8/releases/download/0.1.0/chip8-0.1.0-src.tar.gz">CHIP-8 v0.1.0, released 2015-03-09</a>.
+    <a href="https://github.com/danirod/chip8/releases/tag/0.1.0" target="_blank">Changelog and binary releases</a>.
+  </li>
+</ul>
+
+<h2 id="screenshots">Screenshots</h2>
+
+<p>Click to see bigger versions.</p>
+
+<ul id="images">
+  <li><a href="screenshots/linux.png" target="_blank">
+    <img src="screenshots/linux.thumb.png" alt="CHIP-8 running on a GNU/Linux system"><br>
+    CHIP-8 running on a GNU/Linux system</a>
+  </li>
+  <li><a href="screenshots/mac.png" target="_blank">
+    <img src="screenshots/mac.thumb.png" alt="CHIP-8 running on an Apple® MacOS® X system"><br>
+    CHIP-8 running on an Apple® MacOS® X system</a>
+  </li>
+  <li><a href="screenshots/windows.png" target="_blank">
+    <img src="screenshots/windows.thumb.png" alt="CHIP-8 running on a Microsoft® Windows® system"><br>
+    CHIP-8 running on a Microsoft® Windows® system</a>
+  </li>
+  <li><a href="screenshots/win10.png" target="_blank">
+    <img src="screenshots/win10.thumb.png" alt="CHIP-8 running on Microsoft® Windows® 10"><br>
+    CHIP-8 running on Microsoft® Windows® 10</a> (screenshot provided by GitHub user <a href="http://github.com/guerra24" target="_blank">Guerra24</a>).
+  </li>
+</ul>
+
+<h2 id="support">Support</h2>
+
+<p>
+  You can read the software manual here. Please note that the user manual for v0.2.0
+  was written <strong>after releasing v0.2.0</strong> and therefore is not available
+  in the software distribution that you can download using the links above. It is
+  however included in the source code repository and is expected to come in v0.2.1
+  release.
+</p>
+
+<ul>
+  <li><a href="docs/current/chip8.html">HTML</a> (68 kB), entirely on one web page.</li>
+  <li><a href="docs/current/manual/">HTML, with one chapter per page</a>.</li>
+  <li><a href="docs/current/chip8.pdf">PDF file</a> (211 kB).</li>
+  <li><a href="docs/current/chip8.info">Info document</a> (52 kB).</li>
+  <li><a href="docs/current/chip8.txt">ASCII text</a> (48 kB).</li>
+  <li><a href="docs/current/chip8-texi.tar.gz">Texinfo sources</a> (54 kB).</li>
+</ul>
+
+<h2 id="contributing">Contributing</h2>
+
+<p>
+  Although I am in control of this project, I allow the community to take part
+  of this project. Please, make sure you read the manual first, specially chapter
+  <a href="docs/current/manual/Hacking-the-emulator.html#Hacking-the-emulator" target="_blank">Hacking the emulator</a>,
+  because I provide there rules and guidelines on how I structure my development.
+</p>
+
+<ul>
+  <li><strong>Report bugs</strong>: if you find a bug during the execution of
+  a ROM, report a bug at <a href="https://github.com/danirod/chip8/issues" target="_blank">
+  the issue tracker</a>.</li>
+
+  <li><strong>Send patches</strong>: if you have some interesting feature that
+  you think deserves to be in upstream, send a pull request to our
+  <a href="https://github.com/danirod/chip8/pulls">pull request page</a>.
+  Again, make sure you read the manual first to learn about things that
+  are most likely to be rejected.</li>
+</ul>
+
+<h2 id="license">License</h2>
+
+<p>This project is available under a GNU General Public License v3 license.</p>
+
+<pre>
+    CHIP-8: A multiplatform CHIP-8 emulator done in SDL
+    Copyright &copy; 2015-2016 Dani Rodríguez &lt;<a href="mailto:danirod@outlook.com">danirod@outlook.com</a>&gt;
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see &lt;<a href="http://www.gnu.org/licenses">http://www.gnu.org/licenses/</a>&gt;.
+</pre>
+
+</body>
 </html>

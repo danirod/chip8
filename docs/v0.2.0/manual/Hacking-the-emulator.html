@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2015-2016 Dani Rodri'guez
+
+Permission is granted to copy, distribute and/or modify this document under the
+terms of the GNU Free Documentation License, Version 1.3 or any later version
+published by the Free Software Foundation; with no Invariant Sections, no
+Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included
+in the section entitled "GNU Free Documentation License". -->
+<!-- Created by GNU Texinfo 6.1, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>CHIP-8: Hacking the emulator</title>
+
+<meta name="description" content="CHIP-8: Hacking the emulator">
+<meta name="keywords" content="CHIP-8: Hacking the emulator">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2any">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="GNU-Free-Documentation-License.html#GNU-Free-Documentation-License" rel="next" title="GNU Free Documentation License">
+<link href="Compatible-ROM-formats.html#Corrupt-ROM-files" rel="prev" title="Corrupt ROM files">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Hacking-the-emulator"></a>
+<div class="header">
+<p>
+Next: <a href="GNU-Free-Documentation-License.html#GNU-Free-Documentation-License" accesskey="n" rel="next">GNU Free Documentation License</a>, Previous: <a href="Compatible-ROM-formats.html#Compatible-ROM-formats" accesskey="p" rel="prev">Compatible ROM formats</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Hacking-the-emulator-1"></a>
+<h2 class="appendix">Appendix A Hacking the emulator</h2>
+
+<p>By downloading the software package including source code, any user can change
+how the emulator works to make it behave in a different way for their personal
+interest, as stated in the license terms for the software package.
+</p>
+<p>Some hints are given on the source code to make it easier to advanced people
+to modify the program. They should be specially useful for people that wants
+to contribute to the project by making their contributions public by patching
+the upstream source code via a Pull Request.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Basic-source-code-guidelines" accesskey="1">Basic source code guidelines</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">The most easy rules to follow.
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Style-guides" accesskey="2">Style guides</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Style guides when writing code for this project.
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Opcodes-table" accesskey="3">Opcodes table</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Clarification on how the opcodes table is made.
+</td></tr>
+</table>
+
+
+<hr>
+<a name="Basic-source-code-guidelines"></a>
+<div class="header">
+<p>
+Next: <a href="#Style-guides" accesskey="n" rel="next">Style guides</a>, Up: <a href="#Hacking-the-emulator" accesskey="u" rel="up">Hacking the emulator</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Basic-source-code-guidelines-1"></a>
+<h3 class="section">A.1 Basic source code guidelines</h3>
+
+<p>This program is made using the C programming language. Although any port to
+a different programming language is good to have as a side project, this is
+the official language for this project. Therefore, any patch that attempts
+to change that is not welcome. The project is good using C; I don&rsquo;t want to
+change to C++, Python or whatever funky language is the trendiest at this
+moment.
+</p>
+<p>This program uses GNU Autotools for the build tool. Although GNU Autotools
+is not loved by everyone, this is the official tool for this project. So,
+any attempt to change the build tool to CMake, Gradle or regular Makefiles
+is not welcome.
+</p>
+
+<hr>
+<a name="Style-guides"></a>
+<div class="header">
+<p>
+Next: <a href="#Opcodes-table" accesskey="n" rel="next">Opcodes table</a>, Previous: <a href="#Basic-source-code-guidelines" accesskey="p" rel="prev">Basic source code guidelines</a>, Up: <a href="#Hacking-the-emulator" accesskey="u" rel="up">Hacking the emulator</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Style-guides-1"></a>
+<h3 class="section">A.2 Style guides</h3>
+
+<p>Although this is not an official GNU project, I make use of most of their
+style guidelines. Any contributor that wants to make public changes to the
+project must keep the following rules in mind.
+</p>
+<ul>
+<li> Line width is limited to 80 characters.
+</li><li> Indent uses 4 spaces. No tabs, no 8 spaces, no 2 spaces.
+</li><li> Functions should be defined by keeping the datatype in a different
+    line than the function name and parameters. Check the source code for
+    an example.
+</li><li> Parameters and variables should have a easy to understand name. Some
+    short names are allowed when by context is clear, such as using <code>P</code>,
+    <code>X</code>, <code>Y</code> or <code>K</code> for variables related to an opcode, because
+    these are the names given to the opcode structures. Long names when they
+    are not required is not pretty.
+</li><li> Comments should be added when neccesary. Don&rsquo;t comment every line, but
+    don&rsquo;t add long chunks of code with no clear explanation of what they do.
+</li><li> Long functions should be split in multiple small functions to make
+    the development easier, plus to make testing easier whenever there are
+    functions that should be tested.
+</li></ul>
+
+
+<hr>
+<a name="Opcodes-table"></a>
+<div class="header">
+<p>
+Previous: <a href="#Style-guides" accesskey="p" rel="prev">Style guides</a>, Up: <a href="#Hacking-the-emulator" accesskey="u" rel="up">Hacking the emulator</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Opcodes-table-1"></a>
+<h3 class="section">A.3 Opcodes table</h3>
+
+<p>In order to implement the opcodes, the following structure has been made.
+</p>
+<p>There is a common definition for every opcode function in the code, declared
+as a type named <code>opcode_table_t</code>, located as a private <em>typedef</em>
+in the file <samp>cpu.c</samp> at the <em>lib8</em> subproject.
+</p>
+<p>After that, 16 functions are declared, every one compatible with that typedef.
+Their names are <code>nibble_0</code>, <code>nibble_1</code>, <code>nibble_2</code>... These
+functions have been declared as private functions using the same parameters:
+</p>
+<pre class="verbatim">static void
+nibble_0(struct machine_t* cpu, word opcode);
+
+static void
+nibble_1(struct machine_t* cpu, word opcode);
+
+static void
+nibble_2(struct machine_t* cpu, word opcode);
+</pre>
+<p>Every one of these functions executes opcodes with a P value matching the one
+in the function name. As an example, the opcode <code>6104</code> would be executed
+by <code>nibble_6</code>, since <strong>P(6104) = 6</strong>.
+</p>
+<p>Then, there is an array pointing to every opcode function named
+<code>nibbles[]</code>. These functions are sorted by P value, so that
+<code>nibbles[6]</code> will return a pointer to the function <code>nibble_6</code>,
+and <code>nibbles[0xB]</code> will return a pointer to the function
+<code>nibble_B</code>.
+</p>
+<p>Thanks to this indirection, the processing logic for an opcode is easier
+since no big switch is required on code. Using this indirection, it is
+more straightforward to know which function should process each opcode.
+Although, some functions such as <code>nibble_6</code> will make use of switch
+anyway since there are multiple opcodes sharing the same P value.
+</p>
+
+<hr>
+<div class="header">
+<p>
+Previous: <a href="#Style-guides" accesskey="p" rel="prev">Style guides</a>, Up: <a href="#Hacking-the-emulator" accesskey="u" rel="up">Hacking the emulator</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>
