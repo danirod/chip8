@@ -35,6 +35,9 @@ static int use_mute;
 /* Flag used by '--debug' */
 static int use_debug;
 
+/* Opcodes to execute per frame. */
+static int speed = 16;
+
 /* getopt parameter structure. */
 static struct option long_options[] = {
     { "help", no_argument, 0, 'h' },
@@ -42,6 +45,7 @@ static struct option long_options[] = {
     { "hex", no_argument, &use_hexloader, 1 },
     { "mute", no_argument, &use_mute, 1 },
     { "debug", no_argument, &use_debug, 1 },
+    { "speed", required_argument, 0, 's' },
     { 0, 0, 0, 0 }
 };
 
@@ -172,11 +176,23 @@ main(int argc, char** argv)
 
     /* Parse parameters */
     int indexptr, c;
-    while ((c = getopt_long(argc, argv, "hv", long_options, &indexptr)) != -1) {
+    while ((c = getopt_long(argc, argv, "hs:v", long_options, &indexptr))
+           != -1) {
         switch (c) {
             case 'h':
                 usage(argv[0]);
                 exit(0);
+            case 's':
+                if (optarg) {
+                    speed = atoi(optarg);
+                }
+                if (speed <= 0) {
+                    fprintf(
+                        stderr,
+                        "Invalid speed value: must be a positive number\n");
+                    exit(1);
+                }
+                break;
             case 'v':
                 printf("%s\n", PACKAGE_STRING);
                 exit(0);
@@ -198,6 +214,9 @@ main(int argc, char** argv)
         fprintf(stderr, "%1$s: no file given. '%1$s -h' for help.\n", argv[0]);
         exit(1);
     }
+
+    printf("CHIP-8 emulator\n");
+    printf("Speed emulation: %d\n", speed);
 
     /* Initialize SDL Context. */
     if (init_context()) {
@@ -222,34 +241,36 @@ main(int argc, char** argv)
     }
     load_data(argv[optind], &mac);
 
-
     int last_ticks = SDL_GetTicks();
-    int last_delta = 0, step_delta = 0, render_delta = 0;
+    int last_delta = 0;
     while (!is_close_requested()) {
         /* Update timers. */
         last_delta = SDL_GetTicks() - last_ticks;
         last_ticks = SDL_GetTicks();
-        step_delta += last_delta;
-        render_delta += last_delta;
 
-        /* Opcode execution: estimated 1000 opcodes/second. */
-        while (step_delta >= 1) {
-            step_machine(&mac);
-            step_delta--;
-        }
-
-        /* Update timed subsystems. */
+        /* Update computer. */
         update_time(&mac, last_delta);
-
-        /* Render frame every 1/60th of second. */
-        while (render_delta >= (1000 / 60)) {
-            render_display(&mac);
-            render_delta -= (1000 / 60);
+        for (int i = 0; i < speed; i++) {
+            step_machine(&mac);
         }
 
-        /* Hack to reduce CPU usage :D
-         * Maybe not best way but it works!! */
-        SDL_Delay(1);
+        /* Render computer. */
+        render_display(&mac);
+
+        /*
+         * To render at 60 Hz, you must render a frame each 16.6 ms.
+         * If it took less than 16.6 ms, you can afford sleep some
+         * time. 1 ms will always be slept to keep the CPU cold.
+         */
+        int render_time = SDL_GetTicks() - last_ticks;
+        if (render_time < 16) {
+            /* We can sleep :) */
+            SDL_Delay(16 - render_time);
+        } else {
+            /* We should not sleep, but we will do because the CPU will
+             * otherwise explode. */
+            SDL_Delay(1);
+        }
     }
 
     /* Dispose SDL context. */
