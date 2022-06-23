@@ -277,8 +277,8 @@ nibble_D(struct machine_t* cpu, word opcode)
     if (cpu->esm && OPCODE_N(opcode) == 0) {
         for (int j = 0; j < 16; j++) {
             // Sprite to plot on this line.
-            byte hi = cpu->mem[cpu->i + 2 * j];
-            byte lo = cpu->mem[cpu->i + 2 * j + 1];
+            byte hi = cpu->mem[(cpu->i + 2 * j) & ADDRESS_MASK];
+            byte lo = cpu->mem[(cpu->i + 2 * j + 1) & ADDRESS_MASK];
             word sprite = hi << 8 | lo;
             for (int i = 0; i < 16; i++) {
                 // Where to plot at.
@@ -292,7 +292,7 @@ nibble_D(struct machine_t* cpu, word opcode)
             }
         }
     } else for (int j = 0; j < OPCODE_N(opcode); j++) {
-        byte sprite = cpu->mem[cpu->i + j];
+        byte sprite = cpu->mem[(cpu->i + j) & ADDRESS_MASK];
         for (int i = 0; i < 8; i++) {
             // Where to plot at.
             int px = (cpu->v[x] + i) & (cpu->esm ? 127 : 63);
@@ -355,20 +355,20 @@ nibble_F(struct machine_t* cpu, word opcode)
         break;
     case 0x33:
         /* FX33: Represent V[X] as BCD in I, I+1, I+2. */
-        cpu->mem[cpu->i + 2] = cpu->v[OPCODE_X(opcode)] % 10;
-        cpu->mem[cpu->i + 1] = (cpu->v[OPCODE_X(opcode)] / 10) % 10;
-        cpu->mem[cpu->i] = cpu->v[OPCODE_X(opcode)] / 100;
+        cpu->mem[(cpu->i + 2) & ADDRESS_MASK] = cpu->v[OPCODE_X(opcode)] % 10;
+        cpu->mem[(cpu->i + 1) & ADDRESS_MASK] = (cpu->v[OPCODE_X(opcode)] / 10) % 10;
+        cpu->mem[cpu->i & ADDRESS_MASK] = cpu->v[OPCODE_X(opcode)] / 100;
         break;
     case 0x55:
         /* FX55: LD - Save registers V[0] to V[x] starting at I. */
         for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
-            cpu->mem[cpu->i + reg] = cpu->v[reg];
+            cpu->mem[(cpu->i + reg) & ADDRESS_MASK] = cpu->v[reg];
         }
         break;
     case 0x65:
         /* FX65: LD - Load registers V[0] to V[x] from I. */
         for (int reg = 0; reg <= OPCODE_X(opcode); reg++) {
-            cpu->v[reg] = cpu->mem[cpu->i + reg];
+            cpu->v[reg] = cpu->mem[(cpu->i + reg) & ADDRESS_MASK];
         }
         break;
     case 0x75:
@@ -439,7 +439,8 @@ step_machine(struct machine_t* cpu)
     }
     
     /* Fetch next opcode. */
-    word opcode = (cpu->mem[cpu->pc] << 8) | cpu->mem[cpu->pc + 1];
+    word opcode = (cpu->mem[cpu->pc & ADDRESS_MASK] << 8)
+                 | cpu->mem[(cpu->pc + 1) & ADDRESS_MASK];
     cpu->pc = (cpu->pc + 2) & 0xFFF;
 
     if (is_debug) {
